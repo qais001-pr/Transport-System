@@ -1,376 +1,242 @@
-# 🚐 Van Pooling & School Transport Management System
+# School Transport System - Final Year Project
 
-> A modern, secure, and scalable transport management platform for schools, transport companies, drivers, parents, and administrators.
+## Project Overview
+A comprehensive school transport management system designed to streamline and automate the daily operations of school transportation. The system provides a robust platform for managing students, vehicles, routes, drivers, and monitoring vehicle locations in real-time.
 
-![License](https://img.shields.io/badge/license-MIT-blue.svg)
-![Status](https://img.shields.io/badge/status-Active-success)
-![Platform](https://img.shields.io/badge/platform-Web%20%7C%20Mobile-orange)
+## Key Features
 
----
+### Student Management
+- **CRUD Operations**: Complete Create, Read, Update, and Delete functionality for student records.
+- **Data Validation**: Ensures accurate and consistent student information.
+- **Student Details**: Captures essential information including name, contact details, class, section, and guardian information.
 
-# 📖 Overview
+### Vehicle Management
+- **Vehicle Tracking**: Real-time monitoring of vehicle locations using GPS.
+- **Vehicle Details**: Manages comprehensive vehicle information including make, model, year, license plate, and capacity.
+- **Status Management**: Tracks vehicle availability and operational status.
 
-The **Van Pooling & School Transport Management System** is designed to simplify and automate daily transportation operations. It enables administrators to manage students, vehicles, routes, drivers, attendance, and payments while allowing parents to track their children's transportation in real time.
+### Route Management
+- **Route Creation**: Definable routes with multiple stops.
+- **Route Optimization**: Efficient path planning for optimal transport operations.
+- **Stop Management**: Customizable stop locations with timing information.
 
-The platform improves safety, communication, operational efficiency, and transport management through a centralized dashboard and mobile applications.
+### Driver Management
+- **Driver Profiles**: Detailed driver information including contact details and driving license information.
+- **Assignment**: Easy assignment of drivers to specific routes.
+- **Status Tracking**: Monitors driver availability and status.
 
----
+### Real-Time Monitoring
+- **Live Tracking**: Real-time visualization of all vehicles on a map interface.
+- **Location Updates**: Frequent updates of vehicle positions for accurate monitoring.
+- **Activity Dashboard**: Comprehensive overview of ongoing transport operations.
 
-# ✨ Features
+### Reporting & Analytics
+- **Attendance Records**: Tracks student and driver attendance.
+- **Route History**: Comprehensive logs of completed routes and stops.
+- **Performance Metrics**: Insights into transport efficiency and vehicle utilization.
 
-## 👨‍💼 Admin Panel
+## Technology Stack
 
-- Dashboard with analytics
-- School management
-- Vehicle management
-- Driver management
-- Student management
-- Parent management
-- Route management
-- Stop management
-- Seat allocation
-- Transport scheduling
-- Attendance management
-- Fee management
-- Notifications
-- Reports & Analytics
-- User Management
-- Role-Based Access Control (RBAC)
-- System Settings
+### Frontend
+- **Framework**: [Insert Frontend Framework, e.g., React, Angular, Vue.js]
+- **Language**: [Insert Frontend Language, e.g., TypeScript, JavaScript]
+- **Styling**: [Insert Styling Solution, e.g., Tailwind CSS, Material UI]
+- **Mapping**: [Insert Mapping Library, e.g., Google Maps API, Leaflet]
 
----
+### Backend
+- **Framework**: [Insert Backend Framework, e.g., Express.js, Django, Spring Boot]
+- **Language**: [Insert Backend Language, e.g., JavaScript, Python, Java]
+- **Database**: [Insert Database, e.g., PostgreSQL, MySQL]
+- **ORM**: [Insert ORM if applicable]
 
-## 👨‍👩‍👧 Parent Portal
+### Infrastructure
+- **Containerization**: Docker
+- **Orchestration**: Kubernetes (K8s)
+- **Deployment**: [Insert Deployment Strategy]
+- **Monitoring**: [Insert Monitoring Tools]
 
-- Student profile
-- Live vehicle tracking
-- Driver details
-- Pickup & Drop notifications
-- Attendance history
-- Fee payment
-- Payment history
-- Emergency contact
-- Complaint management
-- Notifications
+## Deployment & Setup
 
----
+### Prerequisites
+- Docker installed and running
+- Kubernetes cluster configured (Minikube, Kind, or cloud-based)
+- [Any other prerequisites]
 
-## 🚍 Driver Portal
+### Installation
+1. **Clone the repository**
+   ```bash
+   git clone [repository-url]
+   cd School-Transport-System
+   ```
 
-- Daily route
-- Student list
-- Navigation
-- Pickup confirmation
-- Drop confirmation
-- Attendance marking
-- Emergency alert
-- Trip history
+2. **Build and run using Docker**
+   ```bash
+   # Build Docker images (if needed)
+   docker-compose build
+   
+   # Start the application
+   docker-compose up -d
+   ```
 
----
+3. **Access the application**
+   - Frontend: [Frontend URL]
+   - Backend: [Backend URL]
+   - Database Admin: [Database Admin URL]
 
-## 👨‍🎓 Student Management
+### Kubernetes Deployment
+To deploy using Kubernetes:
 
-- Student registration
-- Route assignment
-- Vehicle assignment
-- Seat allocation
-- Attendance tracking
-- Pickup & Drop history
+1. **Apply the manifests**
+   ```bash
+   kubectl apply -f Kubernetes/
+   ```
 
----
+2. **Using Helm**
+   ```bash
+   helm install my-transport-app ./Kubernetes/van_system_chart
+   ```
 
-## 🚐 Vehicle Management
-
-- Vehicle registration
-- Vehicle documents
-- Maintenance schedule
-- Insurance expiry
-- Capacity management
-- GPS Tracking
-- Fuel records
-
----
-
-## 🗺 Route Management
-
-- Multiple routes
-- Multiple stops
-- Estimated arrival time
-- Route optimization
-- Distance calculation
-- Driver assignment
-- Vehicle assignment
-
----
-
-## 📍 Live GPS Tracking
-
-- Real-time vehicle location
-- Route progress
-- ETA calculation
-- Speed monitoring
-- Location history
-- Geofencing
-- Trip replay
-
----
-
-## 💳 Fee Management
-
-- Monthly transport fees
-- Online payments
-- Payment reminders
-- Invoice generation
-- Receipt download
-- Payment history
-
----
-
-## 🔔 Notifications
-
-- Pickup reminder
-- Drop confirmation
-- Late arrival alerts
-- Fee reminders
-- Emergency alerts
-- Push notifications
-- SMS integration
-- Email notifications
-
----
-
-## 📊 Reports
-
-- Daily trips
-- Attendance reports
-- Revenue reports
-- Driver reports
-- Vehicle reports
-- Student reports
-- Route reports
-
----
-
-# 🔐 Security
-
-- JWT Authentication
-- Secure Password Hashing
-- Role-Based Authorization
-- HTTPS Support
-- API Validation
-- Activity Logs
-- Audit Logs
-- Rate Limiting
-
----
-
-# 🏗 Architecture
+## Project Structure
 
 ```
-Client Applications
-│
-├── Admin Dashboard
-├── Parent Portal
-├── Driver App
-└── Student Portal
-        │
-        ▼
-REST API / GraphQL
-        │
-        ▼
-Application Server
-        │
- ├── Authentication
- ├── Transport Module
- ├── Payment Module
- ├── Notification Module
- ├── GPS Module
- └── Reporting Module
-        │
-        ▼
-Database
+School-Transport-System/
+├── client/              # Frontend application
+│   ├── src/
+│   └── package.json
+├── server/              # Backend application
+│   ├── src/
+│   └── package.json
+├── Kubernetes/          # Kubernetes manifests
+│   ├── client/
+│   ├── server/
+│   ├── postgres/
+│   ├── postgres_admin/
+│   ├── networkPolicies/
+│   ├── horizontalpodscalar/
+│   ├── ingress.yaml
+│   └── van_system_chart/  # Helm chart
+├── .env.example         # Environment variable template
+├── docker-compose.yml   # Docker Compose configuration
+├── Dockerfile           # Dockerfiles for services
+└── README.md            # Project documentation
 ```
-
----
-
-# 🛠 Tech Stack
-
-## Frontend
-
-- React.js
-- Next.js
-- TypeScript
-- Tailwind CSS
-- Shadcn UI
-- Framer Motion
-
-## Backend
-
-- Node.js
-- Express.js / NestJS
-- TypeScript
-- REST API
 
 ## Database
 
-- PostgreSQL
-- Prisma ORM
+The database is managed using PostgreSQL with the following structure:
 
-## Authentication
+- **Database Name**: [Database Name]
+- **Tables**: 
+  - students
+  - vehicles
+  - routes
+  - stops
+  - drivers
+  - assignments
+  - attendance
+  - tracking
+  - [other tables]
 
-- JWT
-- Refresh Tokens
+See `Kubernetes/van_system_chart/sql/fyp_db.sql` for the complete database schema.
 
-## Storage
+## API Endpoints
 
-- AWS S3 / Cloud Storage
+### Student Endpoints
+- `GET /students`: Get all students
+- `POST /students`: Create a new student
+- `GET /students/:id`: Get student by ID
+- `PUT /students/:id`: Update student
+- `DELETE /students/:id`: Delete student
 
-## Maps
+### Vehicle Endpoints
+- `GET /vehicles`: Get all vehicles
+- `POST /vehicles`: Create a new vehicle
+- `GET /vehicles/:id`: Get vehicle by ID
+- `PUT /vehicles/:id`: Update vehicle
+- `DELETE /vehicles/:id`: Delete vehicle
 
-- Google Maps API
-- GPS Tracking
+### Route Endpoints
+- `GET /routes`: Get all routes
+- `POST /routes`: Create a new route
+- `GET /routes/:id`: Get route by ID
+- `PUT /routes/:id`: Update route
+- `DELETE /routes/:id`: Delete route
 
-## Notifications
+### Driver Endpoints
+- `GET /drivers`: Get all drivers
+- `POST /drivers`: Create a new driver
+- `GET /drivers/:id`: Get driver by ID
+- `PUT /drivers/:id`: Update driver
+- `DELETE /drivers/:id`: Delete driver
 
-- Firebase Cloud Messaging
-- Email
-- SMS
+### Tracking Endpoints
+- `GET /tracking/live`: Get real-time vehicle locations
+- `GET /tracking/:vehicleId/history`: Get vehicle location history
+- `POST /tracking/update`: Update vehicle location
 
----
+## Security
 
-# 📂 Project Structure
+### Security Features
+- **Network Policies**: Configured to restrict traffic between services
+- **Authentication**: [Describe authentication method, e.g., JWT]
+- **Authorization**: [Describe authorization method]
+- **Encryption**: [Describe encryption methods]
 
-```
-project/
-│
-├── apps/
-│   ├── admin
-│   ├── parent
-│   ├── driver
-│   └── api
-│
-├── packages/
-│   ├── ui
-│   ├── config
-│   ├── database
-│   └── shared
-│
-├── docs/
-├── prisma/
-├── public/
-└── README.md
-```
+### Security Best Practices
+- Keep database credentials secure
+- Regularly update container images
+- Implement proper access control
+- Monitor application logs for suspicious activity
 
----
+## Scalability
 
-# 🚀 Installation
+The system is designed for scalability with:
+- Horizontal Pod Autoscaling (HPA) for frontend, backend, and database
+- Stateless frontend architecture
+- Containerized services for easy scaling
 
-```bash
-git clone https://github.com/yourusername/transport-management-system.git
+## Performance
 
-cd transport-management-system
+### Performance Features
+- Real-time location updates
+- Efficient database queries
+- Optimized routing algorithms
+- Caching for frequently accessed data
 
-npm install
+### Performance Metrics
+- [Add performance metrics if available]
 
-npm run dev
-```
+## License
 
----
+[Add license information here, e.g., MIT License]
 
-# ⚙ Environment Variables
+## Contributing
 
-Create a `.env` file.
-
-```env
-DATABASE_URL=
-
-JWT_SECRET=
-
-GOOGLE_MAPS_API_KEY=
-
-FIREBASE_API_KEY=
-
-EMAIL_HOST=
-
-EMAIL_PORT=
-
-EMAIL_USER=
-
-EMAIL_PASS=
-```
-
----
-
-# 📱 Modules
-
-- Authentication
-- User Management
-- Student Management
-- Parent Management
-- Driver Management
-- Vehicle Management
-- Route Management
-- Attendance
-- GPS Tracking
-- Notifications
-- Payments
-- Reports
-- Settings
-
----
-
-# 👥 User Roles
-
-- Super Admin
-- School Admin
-- Transport Manager
-- Driver
-- Parent
-- Student
-
----
-
-# 📈 Future Enhancements
-
-- AI Route Optimization
-- Predictive ETA
-- Driver Performance Analytics
-- Face Recognition Attendance
-- RFID Integration
-- QR Code Boarding
-- SOS Emergency System
-- Offline Mode
-- Fleet Maintenance Prediction
-- Multi-school Support
-
----
-
-# 🤝 Contributing
-
-Contributions are welcome!
+Contributions are welcome! Please follow these steps:
 
 1. Fork the repository
-2. Create your feature branch
-3. Commit your changes
-4. Push to your branch
+2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
 
----
+## Authors
 
-# 📄 License
+- **Zaman Ali**: [Contact Info/GitHub]
+- **Qais**: [Contact Info/GitHub]
+- [Other contributors]
 
-This project is licensed under the MIT License.
+## Acknowledgments
 
----
+- Special thanks to [Mentors/Contributors]
+- Built using [Tools/Technologies]
 
-# 👨‍💻 Author
+## Contact
 
-**Your Name**
+For any questions or support, please contact:
+- Email: [Your Email]
+- GitHub: [Your GitHub]
 
-Full Stack Developer
+## License
 
----
-
-## ⭐ Support
-
-If you like this project, don't forget to **⭐ Star the repository**.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
