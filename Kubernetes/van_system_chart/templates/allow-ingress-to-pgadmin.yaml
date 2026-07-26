@@ -1,0 +1,22 @@
+{{- if .Values.networkPolicy.pgadminIngress.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ .Values.networkPolicy.pgadminIngress.name }}
+spec:
+  podSelector:
+    matchLabels:
+      app: {{ .Values.networkPolicy.pgadminIngress.targetPod }}
+
+  policyTypes:
+    - Ingress
+
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: {{ .Values.networkPolicy.pgadminIngress.namespace }}
+          podSelector:
+            matchLabels:
+              {{ .Values.networkPolicy.pgadminIngress.labelKey }}: {{ .Values.networkPolicy.pgadminIngress.controller }}
+{{- end }}

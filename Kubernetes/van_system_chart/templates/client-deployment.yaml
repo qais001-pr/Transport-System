@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: client
+spec:
+  replicas: {{ .Values.client.deployment.replicasCount }}
+  selector:
+    matchLabels:
+      app: client
+  template:
+    metadata:
+      labels:
+        app: client
+    spec:
+      containers:
+      - name: client
+        image: "{{ .Values.client.deployment.image.repository }}:{{ .Values.client.deployment.image.tag }}"
+        imagePullPolicy: {{ .Values.client.deployment.image.pullPolicy }}
+        resources: {{- toYaml .Values.client.deployment.resources | nindent 12  }}
+        ports:
+        - containerPort: {{ .Values.client.deployment.port }}

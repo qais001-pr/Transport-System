@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pgadmin-pv
+spec:
+  capacity:
+    storage: {{ .Values.pgadmin.persistentStorage.capacity.pvstorage }}
+  volumeMode: {{ .Values.pgadmin.persistentStorage.volumeMode }}
+  accessModes:
+  {{- range .Values.pgadmin.persistentStorage.accessModes }}
+    - {{ . }}
+  {{- end }}
+  persistentVolumeReclaimPolicy: {{ .Values.pgadmin.persistentStorage.reclaimpolicy }}
+  storageClassName: {{ .Values.pgadmin.persistentStorage.storageClassName }}
+  hostPath:
+    path: {{ .Values.pgadmin.persistentStorage.hostPath.path }}
+    type: {{ .Values.pgadmin.persistentStorage.hostPath.type }}

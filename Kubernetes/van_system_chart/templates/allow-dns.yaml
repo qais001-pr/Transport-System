@@ -1,0 +1,26 @@
+{{- if .Values.networkPolicy.dns.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ .Values.networkPolicy.dns.name }}
+
+spec:
+  podSelector: {}
+
+  policyTypes:
+    - Egress
+
+  egress:
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: {{ .Values.networkPolicy.dns.namespace }}
+          podSelector:
+            matchLabels:
+              {{ .Values.networkPolicy.dns.labelKey }}: {{ .Values.networkPolicy.dns.podLabel }}
+      ports:
+        {{- range .Values.networkPolicy.dns.ports }}
+        - protocol: {{ .protocol }}
+          port: {{ .port }}
+        {{- end }}
+{{- end }}

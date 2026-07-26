@@ -1,0 +1,26 @@
+{{- if .Values.pgadmin.autoScaling.enabled }}
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: postgres-hpa
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: StatefulSet
+    name: postgres
+  minReplicas: {{ .Values.pgadmin.autoScaling.minreplicas }}
+  maxReplicas: {{ .Values.pgadmin.autoScaling.maxreplicas }}
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: {{ .Values.pgadmin.autoScaling.cpuUtilization }}
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: {{ .Values.pgadmin.autoScaling.memoryUtilization }}
+{{- end }}
