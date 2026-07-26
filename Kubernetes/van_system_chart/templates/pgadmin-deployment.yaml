@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pgadmin
+spec:
+  replicas: {{ .Values.pgadmin.deployment.replicasCount }}
+  selector:
+    matchLabels:
+      app: pgadmin
+  template:
+    metadata:
+      labels:
+        app: pgadmin
+    spec:
+      containers:
+      - name: pgadmin
+        image: "{{ .Values.pgadmin.deployment.image.repository }}:{{ .Values.pgadmin.deployment.image.tag }}"
+        imagePullPolicy: {{ .Values.pgadmin.deployment.image.pullPolicy }}
+        envFrom:
+          - secretRef:
+              name: pgadmin-secret
+        resources: {{- toYaml .Values.pgadmin.deployment.resources | nindent 12 }}
+
+        volumeMounts:
+          - mountPath: {{ .Values.pgadmin.deployment.volume.mountPath }}
+            name: {{ .Values.pgadmin.deployment.volume.name }}
+        ports:
+        - containerPort: 80
+        
+      volumes:
+        - name: {{ .Values.pgadmin.deployment.volume.name }}
+          persistentVolumeClaim:
+            claimName: {{ .Values.pgadmin.deployment.volume.claimName }}

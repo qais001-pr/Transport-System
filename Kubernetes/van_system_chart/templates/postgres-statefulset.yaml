@@ -1,0 +1,58 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgres
+spec:
+  
+  selector:
+    matchLabels:
+      app: postgres
+  serviceName: postgres-service
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: postgres
+    spec:
+      nodeSelector: {{- toYaml .Values.postgres.statefulset.nodeSelector | nindent 8 }}
+      containers:
+        - name: postgres
+
+          image: "{{ .Values.postgres.statefulset.image.repository }}:{{ .Values.postgres.statefulset.image.tag }}"
+          
+          imagePullPolicy: {{ .Values.postgres.statefulset.image.pullPolicy }} 
+
+          ports:
+            - containerPort: {{ .Values.postgres.statefulset.image.port }}
+              name: postgres
+
+          envFrom:
+            - secretRef:
+                name: postgres-secret
+
+          resources: {{- toYaml .Values.postgres.statefulset.resources | nindent 12 }}
+
+          readinessProbe:
+            exec:
+              command: ["pg_isready", "-U", "postgres"]
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 5
+
+          livenessProbe:
+            exec:
+              command: ["pg_isready", "-U", "postgres"]
+            initialDelaySeconds: 15
+            periodSeconds: 20
+            timeoutSeconds: 5
+            failureThreshold: 5
+
+          volumeMounts:
+            - name: {{ .Values.postgres.statefulset.storage.name }}
+              mountPath: {{ .Values.postgres.statefulset.storage.mountPath }}
+
+      volumes:
+        - name: {{ .Values.postgres.statefulset.storage.name }}
+          persistentVolumeClaim:
+            claimName: {{ .Values.postgres.statefulset.storage.claimName }}

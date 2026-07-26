@@ -1,0 +1,23 @@
+{{- if .Values.networkPolicy.clientIngressNginx.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ .Values.networkPolicy.clientIngressNginx.name }}
+
+spec:
+  podSelector:
+    matchLabels:
+      app: {{ .Values.networkPolicy.clientIngressNginx.targetPod }}
+
+  policyTypes:
+    - Ingress
+
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: {{ .Values.networkPolicy.clientIngressNginx.namespace }}
+          podSelector:
+            matchLabels:
+              {{ .Values.networkPolicy.clientIngressNginx.labelKey }}: {{ .Values.networkPolicy.clientIngressNginx.controller }}
+{{- end }}

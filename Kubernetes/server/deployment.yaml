@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: server
+  namespace: vansystem
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: server
+  template:
+    metadata:
+      labels:
+        app: server
+    spec:
+      initContainers:
+      - name: wait-for-postgres
+        image: postgres:17-alpine
+        command:
+          - sh
+          - -c
+          - |
+            until pg_isready \
+              -h postgres-service \
+              -U postgres \
+              -d fyp_db
+            do
+              echo "Waiting for PostgreSQL..."
+              sleep 5
+            done
+
+            echo "PostgreSQL is ready."
+
+      containers:
+        - name: server
+          image: qais001/vansystem-server:latest
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "1000m"
+            limits:
+              memory: "1Gi"
+              cpu: "2000m"
+          ports:
+            - containerPort: 7860
+          envFrom:
+            - configMapRef:
+                name: server-config

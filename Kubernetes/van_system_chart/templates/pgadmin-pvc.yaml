@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pgadmin-pvc
+spec:
+  storageClassName: {{ .Values.pgadmin.persistentStorage.storageClassName }}
+  accessModes:
+  {{- range .Values.pgadmin.persistentStorage.accessModes }}
+    - {{ . }}
+  {{- end }}
+  resources:
+    requests:
+      storage: {{ .Values.pgadmin.persistentStorage.capacity.storage }}
