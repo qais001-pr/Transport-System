@@ -1,17 +1,15 @@
 postgres:
-
   database:
     user: postgres
     password: postgres
     name: fyp_db
-
 
   job:
     backoffLimit: 3
     activeDeadlineSeconds: 600
     restartPolicy: Never
 
-    image: 
+    image:
       repository: postgres
       tag: 17-alpine
       pullPolicy: IfNotPresent
@@ -20,68 +18,56 @@ postgres:
       configMapName: postgres-init-sql
       fileName: fyp_db.sql
 
-
   persistentStorage:
-    
     nodeSelector:
       key: node-role
       operator: In
-      values: 
-       - application
-    
+      values:
+        - application
+
     capacity:
       storage: 10Gi
       volumeMode: Filesystem
-    
+
     accessModes:
       - ReadWriteOnce
     pvReclaimPolicy: Retain
     storageClassName: local-storage
     hostpath: /data/postgres
 
-
   service:
-    
     port: 5432
     targetPort: 5432
     type: ClusterIP
 
-
   statefulset:
-    
     replicasCount: 1
-    
+
     nodeSelector:
       node-role: application
-    
+
     image:
       repository: postgres
       tag: 17-alpine
       pullPolicy: IfNotPresent
       port: 5432
-    
+
     resources:
-    
       requests:
         cpu: 200m
         memory: 256Mi
-    
+
       limits:
         cpu: 500m
         memory: 512Mi
-    
+
     storage:
       name: postgres-storage
       mountPath: /var/lib/postgresql/data
       claimName: postgres-pvc
 
-
-
 pgadmin:
-  
-
   autoScaling:
-    
     enabled: true
 
     minreplicas: 1
@@ -92,56 +78,51 @@ pgadmin:
   secret:
     email: admin@example.com
     password: admin123
-  
+
   service:
     port: 5050
     targetPort: 80
     type: ClusterIP
-  
+
   persistentStorage:
     storageClassName: local-storage
     volumeMode: Filesystem
     accessModes:
-     - ReadWriteOnce
-  
+      - ReadWriteOnce
+
     capacity:
       storage: 2Gi
       pvstorage: 2Gi
-  
+
     reclaimpolicy: Retain
-  
+
     hostPath:
       path: /data/pgadmin
       type: DirectoryOrCreate
-  
+
   deployment:
-  
     replicasCount: 1
-  
+
     image:
       repository: dpage/pgadmin4
       tag: latest
       pullPolicy: IfNotPresent
-  
+
     resources:
-        requests:
-          cpu: "200m"
-          memory: "128Mi"
-        limits:
-          cpu: "500m"
-          memory: "512Mi"
-  
+      requests:
+        cpu: "200m"
+        memory: "128Mi"
+      limits:
+        cpu: "500m"
+        memory: "512Mi"
+
     volume:
       name: pgadmin-storage
       claimName: pgadmin-pvc
       mountPath: /data/pgadmin
 
-
-
 server:
-
   autoScaling:
-    
     enabled: true
 
     minreplicas: 3
@@ -150,60 +131,51 @@ server:
     memoryUtilization: 60
   config:
     PORT: "7860"
-    JWT_SECRET: "bbiuuibtyrt352w43w34w545sw4s5e34srcgftjycc"
+    JWT_SECRET: "secret_key"
     JWT_EXPIRES_IN: "1d"
     NODE_ENV: "development"
     EMAIL_SERVICES: "gmail"
-    EMAIL_USER: "zamanyaseen2024@gmail.com"
-    EMAIL_PASSWORD: "xein fjwl isdn wwcj"
+    EMAIL_USER: "XXXXXXXXX@gmail.com"
+    EMAIL_PASSWORD: "XXXXXXX"
     EMAIL_FROM_NAME: "Van Pooling Management System"
-    FRONTEND_URL: "http://localhost:3000"
-    CLOUDINARY_URL: "cloudinary://251979327913559:FZo3uSU9ITLDf4dlVBxSkI972rs@dxgj1uzdv"
-    CLOUDINARY_CLOUD_NAME: "dxgj1uzdv"
-    CLOUDINARY_API_KEY: "251979327913559"
-    CLOUDINARY_API_SECRET: "FZo3uSU9ITLDf4dlVBxSkI972rs"
-    VAPID_PUBLIC_KEY: "BEIYJ2sjG7swDP7AJvDSpZK1hSaakzJs-PWtfyZnXsK6PDmXbZgyfHygKnjGR25JqOswaRdYXs4IWsQi9UvZgRg"
-    VAPID_PRIVATE_KEY: "TWwulAERND0eRL3zz-wpX_3P-hx7CW_-3pWgeXolWt4"
-    VAPID_EMAIL: "zamanyaseen2024@gmail.com"
+    VAPID_PUBLIC_KEY: "XXXXXYYYYYYYZZZZZZZ"
+    VAPID_PRIVATE_KEY: "XXXYYYYZZZZZZ"
+    VAPID_EMAIL: "XXXXXXXXX@gmail.com"
     DB_HOST: postgres-service
     DB_USER: postgres
     DB_PASSWORD: postgres
     DB_NAME: fyp_db
     DB_PORT: 5432
-  
+
   service:
     port: 7860
     targetPort: 7860
     type: ClusterIP
-  
+
   deployment:
-  
     replicasCount: 1
-  
+
     image:
       repository: qais001/vansystem-server
       tag: latest
       pullPolicy: IfNotPresent
-  
+
     resources:
-  
       requests:
         memory: "512Mi"
         cpu: "1000m"
-  
+
       limits:
         memory: "1Gi"
         cpu: "2000m"
-  
+
     port: 7860
-  
+
     configMap:
       name: server-config
 
-
 client:
   autoScaling:
-    
     enabled: true
 
     minreplicas: 2
@@ -217,10 +189,9 @@ client:
     type: ClusterIP
 
   deployment:
-    
     replicasCount: 1
 
-    image: 
+    image:
       repository: qais001/vansystem-webapp
       tag: v4.0.0
       pullPolicy: IfNotPresent
@@ -233,11 +204,6 @@ client:
       limits:
         cpu: "500m"
         memory: "512Mi"
-    
-
-
-
-
 
 ingress:
   enabled: true
@@ -331,10 +297,10 @@ networkPolicy:
     labelKey: app.kubernetes.io/component
     controller: controller
   pgadminToPostgresIngress:
-      enabled: true
-      name: allow-pgadmin-to-postgres
-      targetPod: postgres
-      sourcePod: pgadmin
+    enabled: true
+    name: allow-pgadmin-to-postgres
+    targetPod: postgres
+    sourcePod: pgadmin
   serverToPostgresIngress:
     enabled: true
     name: allow-server-to-postgres
