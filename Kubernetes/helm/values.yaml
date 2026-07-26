@@ -125,8 +125,8 @@ server:
   autoScaling:
     enabled: true
 
-    minreplicas: 3
-    maxreplicas: 8
+    minreplicas: 1
+    maxreplicas: 5
     cpuUtilization: 40
     memoryUtilization: 60
   config:
@@ -162,12 +162,12 @@ server:
 
     resources:
       requests:
-        memory: "512Mi"
-        cpu: "1000m"
+        memory: "256Mi"
+        cpu: "250m"
 
       limits:
-        memory: "1Gi"
-        cpu: "2000m"
+        memory: "512Mi"
+        cpu: "500m"
 
     port: 7860
 
@@ -178,8 +178,8 @@ client:
   autoScaling:
     enabled: true
 
-    minreplicas: 2
-    maxreplicas: 6
+    minreplicas: 1
+    maxreplicas: 4
     cpuUtilization: 40
     memoryUtilization: 60
 
