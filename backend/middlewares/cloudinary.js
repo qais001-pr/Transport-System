@@ -6,9 +6,17 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-const uploadToCloudinary = async (filePath, folder = "uploads") =>
-  cloudinary.uploader.upload(filePath, { folder, resource_type: "auto" });
+const fs = require("fs");
 
+const uploadToCloudinary = async (filePath, folder = "uploads") => {
+  console.log("File Path:", filePath);
+  console.log("File Exists:", fs.existsSync(filePath));
+
+  return cloudinary.uploader.upload(filePath, {
+    folder,
+    resource_type: "auto",
+  });
+};
 const uploadBufferToCloudinary = (buffer, filename, folder = "uploads") =>
   new Promise((resolve, reject) => {
     const uploadStream = cloudinary.uploader.upload_stream(

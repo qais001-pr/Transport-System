@@ -11,11 +11,6 @@ data:
   EMAIL_USER: {{ .Values.server.config.EMAIL_USER | quote}}
   EMAIL_PASSWORD: {{ .Values.server.config.EMAIL_PASSWORD | quote}}
   EMAIL_FROM_NAME: {{ .Values.server.config.EMAIL_FROM_NAME | quote}}
-  FRONTEND_URL: {{ .Values.server.config.FRONTEND_URL | quote}}
-  CLOUDINARY_URL: {{ .Values.server.config.CLOUDINARY_URL | quote}}
-  CLOUDINARY_CLOUD_NAME: {{ .Values.server.config.CLOUDINARY_CLOUD_NAME | quote}}
-  CLOUDINARY_API_KEY: {{ .Values.server.config.CLOUDINARY_API_KEY | quote}}
-  CLOUDINARY_API_SECRET: {{ .Values.server.config.CLOUDINARY_API_SECRET | quote}}
   VAPID_PUBLIC_KEY: {{ .Values.server.config.VAPID_PUBLIC_KEY | quote}}
   VAPID_PRIVATE_KEY: {{ .Values.server.config.VAPID_PRIVATE_KEY | quote}}
   VAPID_EMAIL: {{ .Values.server.config.VAPID_EMAIL | quote}}

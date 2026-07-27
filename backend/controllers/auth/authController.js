@@ -6,20 +6,23 @@ const {
   sendWelcomeEmail,
   sendPasswordResetEmail,
 } = require("../../common/sendEmail");
+const { uploadFile } = require("../../middlewares/helper");
 
 const registerUser = async (req, res) => {
   try {
     const { full_name, email, phone, password, role, branch_id, schoolName } =
       req.body;
-    const profile_photo = req.files?.profile_photo?.[0]?.path;
+    let profile_photo = "";
+    console.log(req.files);
     console.log(req.body);
-    console.log("Registration attempt:", {
-      full_name,
-      email,
-      phone,
-      role,
-      branch_id,
-    });
+    if (req.files?.profile_photo?.[0]) {
+      const uploaded = await uploadFile(
+        req.files.profile_photo[0],
+        `users/profile`
+      );
+
+      profile_photo = uploaded.url;
+    }
 
     if (!full_name || !email || !phone || !password || !role)
       return res.status(400).json({ message: "Missing required fields" });
@@ -76,6 +79,59 @@ const registerUser = async (req, res) => {
     }
 
     if (role === "DRIVER") {
+
+      let driver_license = "";
+      let id_card = "";
+      let vehicle_registration = "";
+      let vehicle_photo = "";
+      let number_plate = "";
+
+      if (req.files?.driver_license?.[0]) {
+        const uploaded = await uploadFile(
+          req.files.driver_license[0],
+          `users/driver_license`
+        );
+
+        driver_license = uploaded.url;
+      }
+
+      if (req.files?.id_card?.[0]) {
+        const uploaded = await uploadFile(
+          req.files.id_card[0],
+          `users/id_card`
+        );
+
+        id_card = uploaded.url;
+      }
+
+      if (req.files?.vehicle_registration?.[0]) {
+        const uploaded = await uploadFile(
+          req.files.vehicle_registration[0],
+          `users/vehicle_registration`
+        );
+
+        vehicle_registration = uploaded.url;
+      }
+
+      if (req.files?.vehicle_photo?.[0]) {
+        const uploaded = await uploadFile(
+          req.files.vehicle_photo[0],
+          `users/vehicle_photo`
+        );
+
+        vehicle_photo = uploaded.url;
+      }
+
+      if (req.files?.number_plate?.[0]) {
+        const uploaded = await uploadFile(
+          req.files.number_plate[0],
+          `users/number_plate`
+        );
+
+        number_plate = uploaded.url;
+      }
+
+
       await pool.query(
         `
         INSERT INTO driver_documents(driver_id,driver_license,id_card,vehicle_docs,vehicle_photo,number_plate,is_verified)
@@ -83,11 +139,11 @@ const registerUser = async (req, res) => {
       `,
         [
           userId,
-          req.files?.driver_license?.[0]?.path,
-          req.files?.id_card?.[0]?.path,
-          req.files?.vehicle_registration?.[0]?.path,
-          req.files?.vehicle_photo?.[0]?.path,
-          req.files?.number_plate?.[0]?.path,
+          driver_license,
+          id_card,
+          vehicle_registration,
+          vehicle_photo,
+          number_plate,
         ],
       );
 

@@ -1,0 +1,24 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: school-transport-system
+  namespace: argocd
+spec:
+  project: default
+
+  source:
+    repoURL: ghcr.io/qais001-pr
+    chart: school-transport-system
+    targetRevision: "0.0.1"
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: testing
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+
+    syncOptions:
+      - CreateNamespace=true
