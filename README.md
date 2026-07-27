@@ -38,21 +38,25 @@ A comprehensive school transport management system designed to streamline and au
 ## Technology Stack
 
 ### Frontend
-- **Framework**: [Insert Frontend Framework, e.g., React, Angular, Vue.js]
-- **Language**: [Insert Frontend Language, e.g., TypeScript, JavaScript]
-- **Styling**: [Insert Styling Solution, e.g., Tailwind CSS, Material UI]
-- **Mapping**: [Insert Mapping Library, e.g., Google Maps API, Leaflet]
+- **Framework**: React
+- **Language**: JavaScript
+- **Styling**: Tailwind CSS
+- **Mapping**: Open Street Map
+- **State Management**: Redux Toolkit, Redux Persist
+- **Media Storage**: Cloudinary
+
+
 
 ### Backend
-- **Framework**: [Insert Backend Framework, e.g., Express.js, Django, Spring Boot]
-- **Language**: [Insert Backend Language, e.g., JavaScript, Python, Java]
-- **Database**: [Insert Database, e.g., PostgreSQL, MySQL]
-- **ORM**: [Insert ORM if applicable]
+- **Framework**: NodeJS, Express
+- **Language**: JavaScript
+- **Cloud Storage**: Cloudinary
+- **Database**: PostgreSQL
 
 ### Infrastructure
 - **Containerization**: Docker
 - **Orchestration**: Kubernetes (K8s)
-- **Deployment**: [Insert Deployment Strategy]
+- **Deployment**: ArgoCD
 - **Monitoring**: [Insert Monitoring Tools]
 
 ## Deployment & Setup
@@ -60,6 +64,7 @@ A comprehensive school transport management system designed to streamline and au
 ### Prerequisites
 - Docker installed and running
 - Kubernetes cluster configured (Minikube, Kind, or cloud-based)
+- ArgoCD installed in Kubernetes cluster
 - [Any other prerequisites]
 
 ### Installation
@@ -84,29 +89,43 @@ A comprehensive school transport management system designed to streamline and au
    - Database Admin: [Database Admin URL]
 
 ### Kubernetes Deployment
+Define a label on the worker node with the key node-role and the value application:
+
+``` yaml
+   kubectl label node <worker-node-name> node-role=application
+```
 To deploy using Kubernetes:
 
 1. **Apply the manifests**
-   ```bash
-   kubectl apply -f Kubernetes/
+   ```yaml
+   kubectl apply -f Kubernetes/client/
+   kubectl apply -f Kubernetes/server/
+   kubectl apply -f Kubernetes/postgres/
+   kubectl apply -f Kubernetes/postgres_admin/
+   kubectl apply -f Kubernetes/networkPolicies/
+   kubectl apply -f Kubernetes/horizontalpodscalar/
+   kubectl apply -f Kubernetes/ingress.yaml
    ```
 
 2. **Using Helm**
-   ```bash
-   helm install my-transport-app ./Kubernetes/van_system_chart
+   ```yaml
+   helm install my-transport-app ./Kubernetes/helm
    ```
 
 ## Project Structure
 
 ```
 School-Transport-System/
-├── client/              # Frontend application
+├── frondend/              # Frontend application
 │   ├── src/
 │   └── package.json
-├── server/              # Backend application
+├── database/              # Database
+│   ├── fyp_db.sql
+├── backend/              # Backend application
 │   ├── src/
 │   └── package.json
 ├── Kubernetes/          # Kubernetes manifests
+│   ├── argocd/
 │   ├── client/
 │   ├── server/
 │   ├── postgres/
@@ -114,7 +133,7 @@ School-Transport-System/
 │   ├── networkPolicies/
 │   ├── horizontalpodscalar/
 │   ├── ingress.yaml
-│   └── van_system_chart/  # Helm chart
+│   └── helm/  # Helm chart
 ├── .env.example         # Environment variable template
 ├── docker-compose.yml   # Docker Compose configuration
 ├── Dockerfile           # Dockerfiles for services
@@ -195,20 +214,11 @@ The system is designed for scalability with:
 - Stateless frontend architecture
 - Containerized services for easy scaling
 
-## Performance
-
 ### Performance Features
 - Real-time location updates
 - Efficient database queries
 - Optimized routing algorithms
 - Caching for frequently accessed data
-
-### Performance Metrics
-- [Add performance metrics if available]
-
-## License
-
-[Add license information here, e.g., MIT License]
 
 ## Contributing
 
@@ -222,21 +232,11 @@ Contributions are welcome! Please follow these steps:
 
 ## Authors
 
-- **Zaman Ali**: [Contact Info/GitHub]
-- **Qais**: [Contact Info/GitHub]
-- [Other contributors]
-
-## Acknowledgments
-
-- Special thanks to [Mentors/Contributors]
-- Built using [Tools/Technologies]
+- **Zaman Ali**
+- **Qais**
 
 ## Contact
 
 For any questions or support, please contact:
-- Email: [Your Email]
-- GitHub: [Your GitHub]
-
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+- Email: qaismuhammad742@gmail.com
+- GitHub: github.com/qais001-pr
