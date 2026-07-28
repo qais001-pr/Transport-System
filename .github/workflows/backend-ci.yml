@@ -42,16 +42,5 @@ jobs:
         run: |
           cd school-transport-management-system
           sed -i "s/tag:.*/tag: \"${{ github.ref_name }}\"/" values.yaml
-      - name: Update Chart Version
-        run: |
-          cd school-transport-management-system
-          sed -i "s/^version:.*/version: ${{ github.ref_name }}/" Chart.yaml
-          sed -i "s/^appVersion:.*/appVersion: \"${{ github.ref_name }}\"/" Chart.yaml
-      - name: Push Updated Chart to GHCR
-        run: |
-          cd school-transport-management-system
-          helm package .
-      - name: List all dir
-        run: ls -al
       - name: Render Template Helm Chart
         run: helm template test-release ./school-transport-management-system
