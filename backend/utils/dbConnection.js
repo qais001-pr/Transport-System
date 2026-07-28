@@ -7,14 +7,11 @@ require("dotenv").config();
 //     rejectUnauthorized: false,
 //   },
 // });
-
 const pool = new Pool({
-  user: process.env.DB_USER,
-  host: process.env.DB_HOST,
-  database: process.env.DB_NAME,
-  password: process.env.DB_PASSWORD,
-  port: process.env.DB_PORT,
-  ssl: { rejectUnauthorized: false }
+  connectionString: process.env.DATABASE_URL || `postgres://${process.env.DB_USER}:${process.env.DB_PASSWORD}@${process.env.DB_HOST}:${process.env.DB_PORT}/${process.env.DB_NAME}?uselibpqcompat=true&sslmode=verify-full`,
+  ssl: {
+    rejectUnauthorized: false
+  }
 });
 
 pool.on("error", (err) => {
@@ -28,7 +25,7 @@ const connectDB = async () => {
     client.release();
     return true;
   } catch (err) {
-    console.error("Database Connection Failed:", err.message);
+    console.error("Database Connection Failed:", err);
     return false;
   }
 };
