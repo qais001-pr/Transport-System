@@ -31,7 +31,6 @@ app.use(
 const allowedOrigins = [
   "*",
   "http://localhost:3000",
-  "https://transport-system-orpin.vercel.app/"
 ];
 
 
