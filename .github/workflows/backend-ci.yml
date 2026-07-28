@@ -42,8 +42,8 @@ jobs:
           cd school-transport-management-system
           yq -i '.server.image.tag="${{ github.ref_name }}"' values.yaml
 
-      - name: List all dir
-        run: ls -al
+      # - name: List all dir
+      #   run: ls -al
 
       # - name: Update Chart Version
       #   run: |
