@@ -44,7 +44,7 @@ jobs:
       - name: Update Image Tag
         run: |
           cd school-transport-management-system
-          yq -i '..image.tag="${{ github.ref_name }}"' values.yaml
+          yq -i '.client.image.tag="${{ github.ref_name }}"' values.yaml
 
       # - name: List all dir
       #   run: ls -al
