@@ -44,7 +44,7 @@ export const AvatarProfile = ({ title, subtitle }: HeaderProps) => {
 
   const userName = user?.full_name || user?.name || "User";
   const userRole = user?.role || "Guest";
-  
+
   // if (user?.profile_photo) {
   //   const imageUrl = getFileUrl(user.profile_photo);
   //   console.log("Original profile_photo:", user.profile_photo);
@@ -90,9 +90,8 @@ export const AvatarProfile = ({ title, subtitle }: HeaderProps) => {
                 </p>
               </div>
               <ChevronDown
-                className={`w-4 h-4 text-neutral-600 transition-transform duration-200 hidden sm:block ${
-                  isDropdownOpen ? "rotate-180" : ""
-                }`}
+                className={`w-4 h-4 text-neutral-600 transition-transform duration-200 hidden sm:block ${isDropdownOpen ? "rotate-180" : ""
+                  }`}
               />
             </button>
 
