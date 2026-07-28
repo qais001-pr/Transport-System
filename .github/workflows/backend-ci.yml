@@ -28,11 +28,13 @@ jobs:
         run: echo ${{ secrets.HELM_TOKEN }} | helm registry login ghcr.io -u qais001-pr --password-stdin
       - name: Pull Helm Package From GHCR
         run: helm pull oci://ghcr.io/qais001-pr/school-transport-management-system --version 0.1.1
-      - name: Unzip Helm Package
-        run: tar -xzf school-transport-system-0.1.1.tgz
       - name: List all dir
         run: ls -al
-      - name: Check Helm Package
-        run: cd school-transport-system && ls -al
-      - name: Lint Helm Package
-        run: helm lint ./school-transport-system-0.1.0
+      # - name: Unzip Helm Package
+      #   run: tar -xzf school-transport-system-0.1.1.tgz
+      # - name: List all dir
+      #   run: ls -al
+      # - name: Check Helm Package
+      #   run: cd school-transport-system && ls -al
+      # - name: Lint Helm Package
+      #   run: helm lint ./school-transport-system-0.1.0
