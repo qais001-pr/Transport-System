@@ -28,15 +28,30 @@ jobs:
         run: echo ${{ secrets.HELM_TOKEN }} | helm registry login ghcr.io -u qais001-pr --password-stdin
       - name: Pull Helm Package From GHCR
         run: helm pull oci://ghcr.io/qais001-pr/school-transport-management-system --version 1.1.1
-      - name: List all dir
-        run: ls -al
+      # - name: List all dir
+      #   run: ls -al
       - name: Unzip Helm Package
         run: tar -xzf school-transport-management-system-1.1.1.tgz
-      - name: List all dir
-        run: ls -al
-      - name: Check Helm Package
-        run: cd school-transport-management-system && ls -al
+      # - name: List all dir
+      #   run: ls -al
+      # - name: Check Helm Package
+      #   run: cd school-transport-management-system && ls -al
       - name: Lint Helm Package
         run: helm lint ./school-transport-management-system
-      - name: Render Helm Templates
+      - name: Update Image Tag
+        run: |
+          cd school-transport-management-system
+          sed -i "s/tag:.*/tag: \"${{ github.ref_name }}\"/" values.yaml
+      - name: Update Chart Version
+        run: |
+          cd school-transport-management-system
+          sed -i "s/^version:.*/version: ${{ github.ref_name }}/" Chart.yaml
+          sed -i "s/^appVersion:.*/appVersion: \"${{ github.ref_name }}\"/" Chart.yaml
+      - name: Push Updated Chart to GHCR
+        run: |
+          cd school-transport-management-system
+          helm package .
+      - name: List all dir
+        run: ls -al
+      - name: Render Template Helm Chart
         run: helm template test-release ./school-transport-management-system
