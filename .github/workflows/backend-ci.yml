@@ -23,7 +23,7 @@ jobs:
       # - name: Push Docker Images
       #   run: docker push ${{ secrets.DOCKER_USERNAME }}/school-transport-system:${{ github.ref_name }}
       - name: Setup Helm
-        run: azure/setup-helm@v4
+        uses: azure/setup-helm@v4
       - name: Login Helm
         run: echo ${{ secrets.HELM_TOKEN }} | helm registry login ghcr.io -u qais001-pr --password-stdin
       - name: Pull Helm Package From GHCR
