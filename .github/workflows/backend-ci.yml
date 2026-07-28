@@ -31,10 +31,10 @@ jobs:
       - name: List all dir
         run: ls -al
       - name: Unzip Helm Package
-        run: tar -xzf ./school-transport-system-0.1.1.tgz
+        run: tar -xzf school-transport-management-system-0.1.1.tgz
       - name: List all dir
         run: ls -al
       - name: Check Helm Package
-        run: cd school-transport-system && ls -al
+        run: cd school-transport-management-system && ls -al
       - name: Lint Helm Package
-        run: helm lint ./school-transport-system-0.1.0
+        run: helm lint ./school-transport-management-system-0.1.1
