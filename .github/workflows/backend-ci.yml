@@ -22,6 +22,7 @@ jobs:
         run: docker images
       - name: Push Docker Images
         run: docker push ${{ secrets.DOCKER_USERNAME }}/school-transport-system:${{ github.ref_name }}
+
       - name: Setup Helm
         uses: azure/setup-helm@v4
 
