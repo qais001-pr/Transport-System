@@ -24,7 +24,7 @@ export default function LoginPage() {
   const { mutate: login, isPending } = useLogin();
 
   const navigate = useNavigate();
-  
+
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,8 +33,8 @@ export default function LoginPage() {
       password: formData.password,
     };
     login(payload, {
-      onError: (error: any) => {       
-        if (error?.response?.status===403 && error?.response?.data?.message==="Verify OTP first") {
+      onError: (error: any) => {
+        if (error?.response?.status === 403 && error?.response?.data?.message === "Verify OTP first") {
           navigate("/verify-otp", { state: { email: formData.email } });
         }
       }

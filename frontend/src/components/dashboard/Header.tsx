@@ -157,9 +157,8 @@ export const Header = ({ title, subtitle, role, profile }: any) => {
                     notifications.map((n) => (
                       <div
                         key={n.id}
-                        className={`p-3 text-sm border-b hover:bg-gray-100 flex justify-between gap-2 ${
-                          !n.is_read ? "bg-gray-50" : ""
-                        }`}
+                        className={`p-3 text-sm border-b hover:bg-gray-100 flex justify-between gap-2 ${!n.is_read ? "bg-gray-50" : ""
+                          }`}
                       >
                         <div>
                           <p className="font-medium">{n.title}</p>

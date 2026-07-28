@@ -165,9 +165,8 @@ export const Navbar = () => {
                   {/* Mobile Menu Links */}
                   <div className="flex flex-col gap-2">
                     <Link
-                      to={`/dashboard/${
-                        user?.role ? user.role.toLowerCase() : "user"
-                      }`}
+                      to={`/dashboard/${user?.role ? user.role.toLowerCase() : "user"
+                        }`}
                       onClick={() => setIsOpen(false)}
                       className="flex items-center gap-2 px-3 py-2 text-sm text-neutral-700 hover:bg-white hover:text-primary rounded transition-colors"
                     >
