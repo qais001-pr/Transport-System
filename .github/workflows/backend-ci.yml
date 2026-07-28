@@ -32,7 +32,7 @@ jobs:
         run: helm pull oci://ghcr.io/qais001-pr/school-transport-management-system --version 1.1.1
 
       - name: Unzip Helm Package
-        run: tar -xzf school-transport-management-system-1.1.1.tg
+        run: tar -xzf school-transport-management-system-1.1.1.tgz
 
       - name: Lint Helm Package
         run: helm lint ./school-transport-management-system
