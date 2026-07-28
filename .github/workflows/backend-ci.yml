@@ -44,9 +44,10 @@ jobs:
           yq -i '.server.image.tag="${{ github.ref_name }}"' values.yaml
       - name: List all dir
         run: ls -al
-      - name: Update Image Tag
+      - name: Update Chart Version
         run: |
           cd school-transport-management-system
           yq -i '.version="${{ github.ref_name }}"' Chart.yaml
-      - name: Render Template Helm Chart
-        run: helm template test-release ./school-transport-management-system
+          yq -i '.appVersion="${{ github.ref_name }}"' Chart.yaml
+          cat Chart.yaml
+          cat values.yaml
