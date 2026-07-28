@@ -37,6 +37,6 @@ jobs:
       - name: Check Helm Package
         run: cd school-transport-management-system && ls -al
       - name: Lint Helm Package
-        run: helm lint school-transport-management-system-0.1.1
+        run: helm lint .
       - name: Render Helm Templates
-        run: helm template test-release ./school-transport-management-system
+        run: helm template test-release .
