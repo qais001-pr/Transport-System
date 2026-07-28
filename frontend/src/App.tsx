@@ -15,7 +15,8 @@ import ResetPassword from "./pages/ResetPassword";
 import ForgotPassword from "./pages/ForgotPassword";
 //@ts-ignore
 import Profile from "./pages/Profile";
-
+//@ts-ignore
+import SupportPage from './pages/support';
 // Dashboard Pages
 import ParentDashboard from "./pages/dashboard/parent/ParentDashboard";
 import ParentChildren from "./pages/dashboard/parent/ParentChildren";
@@ -74,6 +75,7 @@ function App() {
     <Routes>
       {/* Public Routes */}
       <Route path="/" element={<HomePage />} />
+      <Route path="/support" element={<SupportPage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
       <Route path="/verify-otp" element={<VerifyOtp />} />
