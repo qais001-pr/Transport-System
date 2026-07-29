@@ -21,7 +21,7 @@ jobs:
       - name: Check Docker Images
         run: docker images
       - name: Push Docker Images
-        run: docker push qais001-pr/school-transport-system:${{ github.ref_name }}
+        run: docker push qais001/school-transport-system:${{ github.ref_name }}
 
       - name: Setup Helm
         uses: azure/setup-helm@v4
