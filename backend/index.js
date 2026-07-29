@@ -15,25 +15,42 @@ const cron = require("node-cron");
 const client = require('prom-client'); // Official Prometheus client
 const app = express();
 const port = process.env.PORT || 7860;
-
+const { Counter } = require('prom-client');
 const server = http.createServer(app);
-// 1. Create a Registry to manage metrics
+// Create a Registry
 const register = new client.Registry();
-// 2. Enable the collection of default Node.js metrics (CPU, memory, event loop)
-client.collectDefaultMetrics({ register });
-// 3. Define a custom metric (Counter) to track total HTTP requests
-const httpRequestCounter = new client.Counter({
-  name: 'http_requests_total',
-  help: 'Total number of HTTP requests received',
-  labelNames: ['method', 'route', 'status_code'],
-});
-register.registerMetric(httpRequestCounter);
 
-// 4. Expose the /metrics endpoint for Prometheus to scrape
-app.get('/api/metrics', async (req, res) => {
-  res.set('Content-Type', register.contentType);
+// Collect default Node.js metrics
+client.collectDefaultMetrics({ register });
+
+// Create HTTP request counter
+const httpRequests = new Counter({
+  name: "http_requests_total",
+  help: "Total HTTP requests",
+  labelNames: ["method", "route", "status_code"],
+});
+// Register the metric
+register.registerMetric(httpRequests);
+
+httpRequests.inc();
+// Count every request
+app.use((req, res, next) => {
+  res.on("finish", () => {
+    httpRequests.inc({
+      method: req.method,
+      route: req.route?.path || req.path,
+      status_code: res.statusCode,
+    });
+  });
+
+  next();
+});
+// Metrics endpoint
+app.get("/api/metrics", async (req, res) => {
+  res.set("Content-Type", register.contentType);
   res.end(await register.metrics());
 });
+
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
