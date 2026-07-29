@@ -1,10 +1,11 @@
 name: Backend-Continuous-Integration
 
 on:
-  workflow_dispatch:
   push:
-    tags:
-      - "v*"
+    branches:
+      - main
+    paths:
+      - "backend/**"
 jobs:
   docker:
     runs-on: ubuntu-latest
@@ -17,47 +18,8 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
       - name: Build Docker Images
-        run: docker build -t qais001-pr/school-transport-system:${{ github.ref_name }} ./backend
+        run: docker build -t qais001-pr/school-transport-system:${{ github.sha }} ./backend
       - name: Check Docker Images
         run: docker images
       - name: Push Docker Images
-        run: docker push qais001/school-transport-system:${{ github.ref_name }}
-
-      - name: Setup Helm
-        uses: azure/setup-helm@v4
-
-      - name: Login Helm
-        run: echo ${{ secrets.HELM_TOKEN }} | helm registry login ghcr.io -u qais001-pr --password-stdin
-
-      - name: Pull Helm Package From GHCR
-        run: helm pull oci://ghcr.io/qais001-pr/school-transport-management-system --version v1.1.3
-
-      - name: Unzip Helm Package
-        run: tar -xzf school-transport-management-system-v1.1.3.tgz
-
-      - name: Lint Helm Package
-        run: helm lint ./school-transport-management-system
-
-      - name: Update Image Tag
-        run: |
-          cd school-transport-management-system
-          yq -i '.server.image.tag="${{ github.ref_name }}"' values.yaml
-
-      # - name: List all dir
-      #   run: ls -al
-
-      # - name: Update Chart Version
-      #   run: |
-      #     cd school-transport-management-system
-      #     yq -i '.version="${{ github.ref_name }}"' Chart.yaml
-      #     yq -i '.appVersion="${{ github.ref_name }}"' Chart.yaml
-
-      - name: Package Helm Chart
-        run: |
-          cd school-transport-management-system
-          helm package .
-
-      - name: Push to GHCR
-        run: |
-          cd school-transport-management-system
-          helm push ./school-transport-management-system-v1.1.3.tgz oci://ghcr.io/qais001-pr
+        run: docker push qais001/school-transport-system:${{ github.sha }}
