@@ -17,11 +17,11 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
       - name: Build Docker Images
-        run: docker build -t ${{ secrets.DOCKER_USERNAME }}/school-transport-system:${{ github.ref_name }} ./backend
+        run: docker build -t qais001-pr/school-transport-system:${{ github.ref_name }} ./backend
       - name: Check Docker Images
         run: docker images
       - name: Push Docker Images
-        run: docker push ${{ secrets.DOCKER_USERNAME }}/school-transport-system:${{ github.ref_name }}
+        run: docker push qais001-pr/school-transport-system:${{ github.ref_name }}
 
       - name: Setup Helm
         uses: azure/setup-helm@v4
