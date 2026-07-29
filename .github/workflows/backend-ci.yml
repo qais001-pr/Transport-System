@@ -6,20 +6,57 @@ on:
       - main
     paths:
       - "backend/**"
+
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "backend/**"
+
 jobs:
-  docker:
+  backend-ci:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
-      - name: Login to Docker Hub
-        uses: docker/login-action@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
-      - name: Build Docker Images
-        run: docker build -t qais001-pr/school-transport-system:${{ github.sha }} ./backend
-      - name: Check Docker Images
-        run: docker images
-      - name: Push Docker Images
-        run: docker push qais001/school-transport-system:${{ github.sha }}
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install Dependencies
+        run: npm ci
+        working-directory: ./backend
+
+      - name: Dependency Vulnerability Scan
+        run: npm audit --audit-level=high
+        working-directory: ./backend
+
+      - name: Secret Scan
+        uses: gitleaks/gitleaks-action@v2
+        with:
+          path: ./backend
+          report-format: sarif
+          report-path: gitleaks-report.sarif
+          verbose: true
+          hard-fail: true
+
+      - name: Upload Gitleaks Report
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: gitleaks-report.sarif
+
+      - name: Build Docker Image
+        run: docker build -t backend:test ./backend
+
+      - name: Scan Docker Image
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: backend:test
+          format: table
+          severity: CRITICAL,HIGH
+          exit-code: 1
