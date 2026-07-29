@@ -15,7 +15,6 @@ const cron = require("node-cron");
 const client = require('prom-client'); // Official Prometheus client
 const app = express();
 const port = process.env.PORT || 7860;
-// const logger = require('./middlewares/loki')
 const { Counter } = require('prom-client');
 const server = http.createServer(app);
 // Create a Registry
