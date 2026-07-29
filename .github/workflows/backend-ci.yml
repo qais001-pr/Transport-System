@@ -48,11 +48,6 @@ jobs:
           verbose: true
           hard-fail: true
 
-      - name: Upload Gitleaks Report
-        uses: github/codeql-action/upload-sarif@v4
-        with:
-          sarif_file: gitleaks-report.sarif
-
       - name: Build Docker Image
         run: docker build -t backend:test ./backend
 
