@@ -12,11 +12,45 @@ const { Server } = require("socket.io");
 const { autoResetLeaves } = require("./controllers/parents/parentController");
 const setupSocket = require("./sockets/setupSocket");
 const cron = require("node-cron");
-
+const client = require('prom-client'); // Official Prometheus client
 const app = express();
 const port = process.env.PORT || 7860;
-
+const { Counter } = require('prom-client');
 const server = http.createServer(app);
+// Create a Registry
+const register = new client.Registry();
+
+// Collect default Node.js metrics
+client.collectDefaultMetrics({ register });
+
+// Create HTTP request counter
+const httpRequests = new Counter({
+  name: "http_requests_total",
+  help: "Total HTTP requests",
+  labelNames: ["method", "route", "status_code"],
+});
+// Register the metric
+register.registerMetric(httpRequests);
+
+httpRequests.inc();
+// Count every request
+app.use((req, res, next) => {
+  res.on("finish", () => {
+    httpRequests.inc({
+      method: req.method,
+      route: req.route?.path || req.path,
+      status_code: res.statusCode,
+    });
+  });
+
+  next();
+});
+// Metrics endpoint
+app.get("/api/metrics", async (req, res) => {
+  res.set("Content-Type", register.contentType);
+  res.end(await register.metrics());
+});
+
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
