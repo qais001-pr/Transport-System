@@ -3,18 +3,18 @@ name: Backend-Continuous-Integration
 on:
   workflow_dispatch:
 
-  push:
-    branches:
-      - main
-      - update
-    paths:
-      - "backend/**"
+  # push:
+  #   branches:
+  #     - main
+  #     - update
+  #   paths:
+  #     - "backend/**"
 
-  pull_request:
-    branches:
-      - main
-    paths:
-      - "backend/**"
+  # pull_request:
+  #   branches:
+  #     - main
+  #   paths:
+  #     - "backend/**"
 
 jobs:
   backend-ci:
