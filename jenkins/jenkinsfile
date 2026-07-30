@@ -22,14 +22,14 @@ pipeline{
             steps{
                 dir('School-Transport-System-Deployment'){
                     dir('helm'){
-                        sh '''
-                        cat values.yaml
+                       sh '''
+                        yq -i '.version = "1.1.1"' Chart.yaml
+                        yq -i '.appVersion = "1.1.1"' Chart.yaml
+                        yq -i '.image.tag = "1.1.1"' values.yaml
+
                         cat Chart.yaml
-                        yq -i '.version=1.1.1' Chart.yaml
                         cat values.yaml
-                        cat Chart.yaml
-                        
-                        '''
+                    '''
                     }
                 }
             }
