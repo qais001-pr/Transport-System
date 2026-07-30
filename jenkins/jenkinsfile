@@ -1,14 +1,86 @@
-@Library('shared-library') _
-
-pipeline{
+pipeline {
     agent {
-        kubernetes{}
+        kubernetes {
+            inherit-from 'kaniko' 
+        }
     }
+    stages {
 
-    stages{
-        stage('CheckOut'){
-            checkoutCode()
+        stage('Clone Github Repository') {
+            steps {
+                withCredentials([
+                    usernamePassword(
+                        credentialsId: 'github-credentials-token',
+                        usernameVariable: 'GITHUB_USER',
+                        passwordVariable: 'GITHUB_TOKEN'
+                    )
+                ]) {
+                    sh '''
+                        git clone https://${GITHUB_USER}:${GITHUB_TOKEN}@github.com/qais001-pr/School-Transport-System-Deployment.git
+                    '''
+                }
+            }
+        }
+
+        // stage('Update Helm Chart') {
+        //     steps {
+        //         dir('School-Transport-System-Deployment/helm') {
+        //             sh '''
+        //                 # Download yq into current directory
+        //                 curl -L https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -o yq
+        //                 chmod +x yq
+
+        //                 ./yq --version
+
+        //                 echo "===== Before ====="
+        //                 cat Chart.yaml | grep version
+
+        //                 # Update Chart version
+        //                 ./yq -i '.version = "1.1.1"' Chart.yaml
+
+        //                 echo "===== After ====="
+        //                 cat Chart.yaml | grep version
+        //             '''
+        //         }
+        //     }
+        // }
+        parallel{
+            stages('Build Backend Docker Image'){
+                steps{
+                    container('kaniko'){
+                        sd '''
+                        /kaniko/executor \
+                        --context=$WORKSPACE/backend \
+                        --dockerfile=$WORKSPACE/backend/Dockerfile \
+                        -- no-push
+                        '''
+                    }
+                }
+            }
+            stages('Build FrontEnd Docker Image'){
+                steps{
+                    container('kaniko'){
+                        sd '''
+                        /kaniko/executor \
+                        --context=$WORKSPACE/fronend \
+                        --dockerfile=$WORKSPACE/frontend/Dockerfile.k8s \
+                        --build-arg VITE_API_URL=$VITE_API_URL \
+                        --build-arg VITE_SOCKET_URL=$VITE_SOCKET_URL \
+                        --build-arg VITE_VAPID_PUBLIC_KEY=$VITE_VAPID_PUBLIC_KEY \
+                        -- no-push
+                        '''
+                    }
+                }
+            }
         }
     }
 
+    post {
+        success {
+            echo 'Pipeline succeeded'
+        }
+        failure {
+            echo 'Pipeline failed'
+        }
+    }
 }
