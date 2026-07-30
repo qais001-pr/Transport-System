@@ -1,24 +1,26 @@
 pipeline {
     agent {
-        kubernetes {}
+        kubernetes {
+            inheritFrom 'kaniko-agent'
+        }
     }
     stages {
 
-        stage('Clone Github Repository') {
-            steps {
-                withCredentials([
-                    usernamePassword(
-                        credentialsId: 'github-credentials-token',
-                        usernameVariable: 'GITHUB_USER',
-                        passwordVariable: 'GITHUB_TOKEN'
-                    )
-                ]) {
-                    sh '''
-                        git clone https://${GITHUB_USER}:${GITHUB_TOKEN}@github.com/qais001-pr/School-Transport-System-Deployment.git
-                    '''
-                }
-            }
-        }
+        // stage('Clone Github Repository') {
+        //     steps {
+        //         withCredentials([
+        //             usernamePassword(
+        //                 credentialsId: 'github-credentials-token',
+        //                 usernameVariable: 'GITHUB_USER',
+        //                 passwordVariable: 'GITHUB_TOKEN'
+        //             )
+        //         ]) {
+        //             sh '''
+        //                 git clone https://${GITHUB_USER}:${GITHUB_TOKEN}@github.com/qais001-pr/School-Transport-System-Deployment.git
+        //             '''
+        //         }
+        //     }
+        // }
 
         // stage('Update Helm Chart') {
         //     steps {
@@ -58,15 +60,22 @@ pipeline {
             stages('Build FrontEnd Docker Image'){
                 steps{
                     container('kaniko'){
-                        sd '''
-                        /kaniko/executor \
-                        --context=$WORKSPACE/fronend \
-                        --dockerfile=$WORKSPACE/frontend/Dockerfile.k8s \
-                        --build-arg VITE_API_URL=$VITE_API_URL \
-                        --build-arg VITE_SOCKET_URL=$VITE_SOCKET_URL \
-                        --build-arg VITE_VAPID_PUBLIC_KEY=$VITE_VAPID_PUBLIC_KEY \
-                        -- no-push
-                        '''
+                        withCredentials([
+                            string(credentialsId: 'VITE_API_URL', variable: 'VITE_API_URL'),
+                            string(credentialsId: 'VITE_SOCKET_URL', variable: 'VITE_SOCKET_URL'),
+                            string(credentialsId: 'VITE_VAPID_PUBLIC_KEY', variable: 'VITE_VAPID_PUBLIC_KEY')
+                        ]) {
+
+                            sh '''
+                            /kaniko/executor \
+                            --context=$WORKSPACE/frontend \
+                            --dockerfile=$WORKSPACE/frontend/Dockerfile \
+                            --build-arg VITE_API_URL=$VITE_API_URL \
+                            --build-arg VITE_SOCKET_URL=$VITE_SOCKET_URL \
+                            --build-arg VITE_VAPID_PUBLIC_KEY=$VITE_VAPID_PUBLIC_KEY \
+                            --destination=qais001/school-transport-frontend:${BUILD_NUMBER}
+                            '''
+                        }
                     }
                 }
             }
