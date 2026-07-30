@@ -2,7 +2,6 @@ pipeline {
     agent {
         kubernetes {}
     }
-
     stages {
 
         stage('Clone Github Repository') {
@@ -43,13 +42,11 @@ pipeline {
                 }
             }
         }
-
-        stage('Build') {
-            steps {
-                echo 'building'
+        stage('List all dir'){
+            steps{
+                sh 'ls -a'
             }
         }
-
         stage('Test') {
             steps {
                 echo 'testing'
