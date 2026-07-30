@@ -26,10 +26,9 @@ pipeline {
                 dir('School-Transport-System-Deployment/helm') {
                     sh '''
                         # Download yq into current directory
-                        wget -q https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O yq
+                        curl -L https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -o yq
                         chmod +x yq
 
-                        # Verify installation
                         ./yq --version
 
                         echo "===== Before ====="
