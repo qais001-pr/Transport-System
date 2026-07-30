@@ -5,18 +5,17 @@ pipeline{
     stages{
         stage('Clone Github Repository'){
             steps{
-                withCredientials([
-                    usernamePassword(
-                    credientialsId: 'github-credentials-token',
-                    usernameVariable: 'GITHUB_USER',
-                    usernamePassword: 'GITHUB_TOKEN'    
-                    )
-                ])
-                {
-                    sh '''
-                    git clone https://${GITHUB_USER}:${GITHUB_TOKEN}@github.com/qais001-pr/School-Transport-System-Deployment.git
-                    '''
-                }
+                 withCredentials([
+                usernamePassword(
+                credentialsId: 'github-credentials-token',
+                usernameVariable: 'GITHUB_USER',
+                passwordVariable: 'GITHUB_TOKEN'
+            )
+        ]) {
+            sh '''
+                git clone https://${GITHUB_USER}:${GITHUB_TOKEN}@github.com/qais001-pr/School-Transport-System-Deployment.git
+            '''
+        }
             }
         }
         stage('List Repo'){
