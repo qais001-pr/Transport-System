@@ -1,70 +1,76 @@
-pipeline{
+pipeline {
     agent {
         kubernetes {}
-    }    
-    stages{
-        stage('Clone Github Repository'){
-            steps{
-                 withCredentials([
-                usernamePassword(
-                credentialsId: 'github-credentials-token',
-                usernameVariable: 'GITHUB_USER',
-                passwordVariable: 'GITHUB_TOKEN'
-            )
-        ]) {
-            sh '''
-                git clone https://${GITHUB_USER}:${GITHUB_TOKEN}@github.com/qais001-pr/School-Transport-System-Deployment.git
-            '''
-        }
+    }
+
+    stages {
+
+        stage('Clone Github Repository') {
+            steps {
+                withCredentials([
+                    usernamePassword(
+                        credentialsId: 'github-credentials-token',
+                        usernameVariable: 'GITHUB_USER',
+                        passwordVariable: 'GITHUB_TOKEN'
+                    )
+                ]) {
+                    sh '''
+                        git clone https://${GITHUB_USER}:${GITHUB_TOKEN}@github.com/qais001-pr/School-Transport-System-Deployment.git
+                    '''
+                }
             }
         }
+
         stage('Update Helm Chart') {
-                steps {
-                    dir('School-Transport-System-Deployment/helm') {
-                        sh '''
-                            # Install yq
-                            wget https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O /usr/local/bin/yq
-                            chmod +x /usr/local/bin/yq
+            steps {
+                dir('School-Transport-System-Deployment/helm') {
+                    sh '''
+                        # Download yq into current directory
+                        wget -q https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O yq
+                        chmod +x yq
 
-                            # Verify installation
-                            yq --version
+                        # Verify installation
+                        ./yq --version
 
-                            # Show current files
-                            cat Chart.yaml
-                            cat values.yaml
+                        echo "===== Before ====="
+                        cat Chart.yaml
+                        cat values.yaml
 
-                            # Update Chart version
-                            yq -i '.version = "1.1.1"' Chart.yaml
+                        # Update Chart version
+                        ./yq -i '.version = "1.1.1"' Chart.yaml
 
-                            # Show updated file
-                            cat Chart.yaml
-                        '''
-                    }
+                        echo "===== After ====="
+                        cat Chart.yaml
+                        cat values.yaml
+                    '''
+                }
             }
         }
 
-        stage('build'){
-            steps{
+        stage('Build') {
+            steps {
                 echo 'building'
             }
         }
-        stage('test'){
-            steps{
+
+        stage('Test') {
+            steps {
                 echo 'testing'
             }
         }
-        stage('deploy'){
-            steps{
+
+        stage('Deploy') {
+            steps {
                 echo 'deploying'
             }
         }
     }
 
-    post{
-        success{
+    post {
+        success {
             echo 'Pipeline succeeded'
         }
-        failure{
+        failure {
             echo 'Pipeline failed'
         }
     }
