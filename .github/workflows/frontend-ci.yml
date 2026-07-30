@@ -1,28 +1,65 @@
-name: Front Continuous Deployment
+name: Frontend-Continuous-Integration
+
+permissions:
+  contents: read
+  security-events: write
+
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - "frontend/**"
+  workflow_dispatch:
+
+  # push:
+  #   branches:
+  #     - main
+  #     - update
+  #   paths:
+  #     - "frontend/**"
+
+  # pull_request:
+  #   branches:
+  #     - main
+  #   paths:
+  #     - "frontend/**"
+
 jobs:
-  docker:
+  frontend-ci:
     runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: ./frontend
+
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Login To Docker Hub
-        uses: docker/login-action@v3
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Dependency Vulnerability Scan
+        run: npm audit --audit-level=high
+
+      - name: Secret Scan
+        uses: gitleaks/gitleaks-action@v2
         with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
+          path: ./frontend
+          report-format: sarif
+          report-path: gitleaks-report.sarif
+          verbose: true
+          hard-fail: true
+
+      - name: Build React Application
+        run: npm run build
 
       - name: Build Docker Image
-        run: docker build --build-arg VITE_SOCKET_URL=${{ vars.VITE_SOCKET_URL }} --build-arg VITE_API_URL=${{ vars.VITE_API_URL }} --build-arg VITE_VAPID_PUBLIC_KEY=${{ vars.VITE_VAPID_PUBLIC_KEY }} -t ${{ secrets.DOCKER_USERNAME }}/school-transport-web:${{ github.ref_name }} -f ./frontend/Dockerfile.k8s ./frontend
+        run: docker build --pull --no-cache -t frontend:test .
 
-      - name: Check Docker Images
-        run: docker images
-
-      - name: Push Docker Images
-        run: docker push ${{ secrets.DOCKER_USERNAME }}/school-transport-web:${{ github.ref_name }}
+      - name: Scan Docker Image
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: frontend:test
+          format: table
+          severity: CRITICAL,HIGH
+          exit-code: 0
