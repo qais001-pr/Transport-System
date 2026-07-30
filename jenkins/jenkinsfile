@@ -1,71 +1,14 @@
-pipeline {
+@Library('shared-library') _
+
+pipeline{
     agent {
-        kubernetes {}
+        kubernetes{}
     }
-    stages {
 
-        stage('Clone Github Repository') {
-            steps {
-                withCredentials([
-                    usernamePassword(
-                        credentialsId: 'github-credentials-token',
-                        usernameVariable: 'GITHUB_USER',
-                        passwordVariable: 'GITHUB_TOKEN'
-                    )
-                ]) {
-                    sh '''
-                        git clone https://${GITHUB_USER}:${GITHUB_TOKEN}@github.com/qais001-pr/School-Transport-System-Deployment.git
-                    '''
-                }
-            }
-        }
-
-        stage('Update Helm Chart') {
-            steps {
-                dir('School-Transport-System-Deployment/helm') {
-                    sh '''
-                        # Download yq into current directory
-                        curl -L https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -o yq
-                        chmod +x yq
-
-                        ./yq --version
-
-                        echo "===== Before ====="
-                        cat Chart.yaml | grep version
-
-                        # Update Chart version
-                        ./yq -i '.version = "1.1.1"' Chart.yaml
-
-                        echo "===== After ====="
-                        cat Chart.yaml | grep version
-                    '''
-                }
-            }
-        }
-        stage('List all dir'){
-            steps{
-                sh 'ls -a'
-            }
-        }
-        stage('Test') {
-            steps {
-                echo 'testing'
-            }
-        }
-
-        stage('Deploy') {
-            steps {
-                echo 'deploying'
-            }
+    stages{
+        stage('CheckOut'){
+            checkoutCode()
         }
     }
 
-    post {
-        success {
-            echo 'Pipeline succeeded'
-        }
-        failure {
-            echo 'Pipeline failed'
-        }
-    }
 }
