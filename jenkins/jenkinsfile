@@ -20,18 +20,30 @@ pipeline{
         }
         stage('List Repo'){
             steps{
-                dir('School-Transport-System-Deployment'){
-                    dir('helm'){
-                       sh '''
-                        yq -i '.version = "1.1.1"' Chart.yaml
-                        yq -i '.appVersion = "1.1.1"' Chart.yaml
-                        yq -i '.image.tag = "1.1.1"' values.yaml
+                stage('Update Helm Chart') {
+    steps {
+        dir('School-Transport-System-Deployment/helm') {
+            sh '''
+                # Install yq
+                wget https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O /usr/local/bin/yq
+                chmod +x /usr/local/bin/yq
 
-                        cat Chart.yaml
-                        cat values.yaml
-                    '''
-                    }
-                }
+                # Verify installation
+                yq --version
+
+                # Show current files
+                cat Chart.yaml
+                cat values.yaml
+
+                # Update Chart version
+                yq -i '.version = "1.1.1"' Chart.yaml
+
+                # Show updated file
+                cat Chart.yaml
+            '''
+        }
+    }
+}
             }
         }
         stage('build'){
