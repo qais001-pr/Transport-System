@@ -22,8 +22,7 @@ pipeline{
             steps{
                 dir('School-Transport-System-Deployment'){
                     dir('helm'){
-                        sh 
-                        '''
+                        sh '''
                         cat values.yaml
                         cat Chart.yaml
                         yq -i '.version=1.1.1' Chart.yaml
