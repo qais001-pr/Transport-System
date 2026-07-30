@@ -5,20 +5,17 @@ permissions:
   security-events: write
 
 on:
-  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - "frontend/**"
 
-  # push:
-  #   branches:
-  #     - main
-  #     - update
-  #   paths:
-  #     - "frontend/**"
-
-  # pull_request:
-  #   branches:
-  #     - main
-  #   paths:
-  #     - "frontend/**"
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "frontend/**"
 
 jobs:
   frontend-ci:
