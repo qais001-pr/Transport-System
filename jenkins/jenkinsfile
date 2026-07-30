@@ -21,7 +21,17 @@ pipeline{
         stage('List Repo'){
             steps{
                 dir('School-Transport-System-Deployment'){
-                    sh 'ls -a'
+                    dir('helm'){
+                        sh 
+                        '''
+                        cat values.yaml
+                        cat Chart.yaml
+                        yq -i '.version=1.1.1' Chart.yaml
+                        cat values.yaml
+                        cat Chart.yaml
+                        
+                        '''
+                    }
                 }
             }
         }
