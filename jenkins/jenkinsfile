@@ -1,10 +1,22 @@
 pipeline{
     agent {
-        kubernetes {
-            
-        }
+        kubernetes {}
     }    
     stages{
+        stage('Clone Github Repository'){
+            steps{
+                git branch: 'main',
+                    credientialsId: 'github-credentials-token'
+                    uri: 'git@github.qais001-pr/School-Transport-System-Deployment.git'
+            }
+        }
+        stage('List Repo'){
+            steps{
+                dir('School-Transport-System-Deployment'){
+                    sh 'ls -a'
+                }
+            }
+        }
         stage('build'){
             steps{
                 echo 'building'
