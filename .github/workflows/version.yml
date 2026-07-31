@@ -44,15 +44,18 @@ jobs:
         run: |
           cd frontend
           docker build \
-          --build-arg VITE_SOCKET_URL="${{ vars.VITE_SOCKET_URL }}" \
-          --build-arg VITE_API_URL="${{ vars.VITE_API_URL }}" \
-          --build-arg VITE_VAPID_PUBLIC_KEY="${{ vars.VITE_VAPID_PUBLIC_KEY }}" \
-          -t qais001/school-transport-web:${{ inputs.tag_version }} \
-          -f ./Dockerfile.k8s .
+            --build-arg VITE_SOCKET_URL="${{ vars.VITE_SOCKET_URL }}" \
+            --build-arg VITE_API_URL="${{ vars.VITE_API_URL }}" \
+            --build-arg VITE_VAPID_PUBLIC_KEY="${{ vars.VITE_VAPID_PUBLIC_KEY }}" \
+            -t qais001/school-transport-web:${{ inputs.tag_version }} \
+            -f ./Dockerfile.k8s .
+          docker push qais001/school-transport-web:${{ inputs.tag_version }}
 
       - name: Build and Push Backend Docker Image
-        run: cd backend
+        run: |
+          cd backend
           docker build -t qais001/school-transport-backend:${{ inputs.tag_version }} .
+          docker push qais001/school-transport-backend:${{ inputs.tag_version }}
 
       # -------------------------------------------------------------
       # 2. UPDATE HELM CHART & VALUES
@@ -71,40 +74,39 @@ jobs:
           yq -i ".version = \"${CLEAN_VERSION}\"" Chart.yaml
           yq -i ".appVersion = \"${FULL_TAG}\"" Chart.yaml
 
-          # Docker Hub Image paths & Tags
-          yq -i ".client.image.repository = ${{}}" values.yaml
+          # Docker Hub Image tags update karein
           yq -i ".client.image.tag = \"${FULL_TAG}\"" values.yaml
-          yq -i ".server.image.repository = ${{}}" values.yaml
           yq -i ".server.image.tag = \"${FULL_TAG}\"" values.yaml
 
           echo "--- Updated Chart.yaml ---"
           cat Chart.yaml
 
-      #     # Git Config & Push to Deployment Repo
-      #     git config user.name "Muhammad Qais"
-      #     git config user.email "qaismuhammad742@gmail.com"
-      #     git add .
-      #     git commit -m "chore(helm): release version ${FULL_TAG} [skip ci]" || echo "No changes to commit"
-      #     git push origin main
+          # Git Config & Push to Deployment Repo
+          git config user.name "Muhammad Qais"
+          git config user.email "qaismuhammad742@gmail.com"
+          git add .
+          git commit -m "chore(helm): release version ${FULL_TAG} [skip ci]" || echo "No changes to commit"
+          git push origin main
 
-      # # -------------------------------------------------------------
-      # # 3. HELM OCI PACKAGE TO GHCR
-      # # -------------------------------------------------------------
-      # - name: Log in to GitHub Container Registry (GHCR)
-      #   uses: docker/login-action@v3
-      #   with:
-      #     registry: ghcr.io
-      #     username: ${{ github.actor }}
-      #     password: ${{ secrets.HELM_TOKEN }}
+      # -------------------------------------------------------------
+      # 3. HELM OCI PACKAGE TO GHCR
+      # -------------------------------------------------------------
+      - name: Log in to GitHub Container Registry (GHCR)
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: qais001-pr
+          password: ${{ secrets.HELM_TOKEN }}
 
-      # - name: Package & Push Helm Chart to GHCR (OCI)
-      #   run: |
-      #     FULL_TAG="${{ inputs.tag_version }}"
-      #     CLEAN_VERSION=${FULL_TAG#v}
+      - name: Package & Push Helm Chart to GHCR (OCI)
+        run: |
+          FULL_TAG="${{ inputs.tag_version }}"
+          CLEAN_VERSION=${FULL_TAG#v}
 
-      #     cd School-Transport-System-Deployment
-      #     if [ -d "helm" ]; then cd helm; fi
+          cd School-Transport-System-Deployment
+          if [ -d "helm" ]; then cd helm; fi
 
-      #     helm lint .
-      #     helm package .
-      #     helm push "School-Transport-System-Deployment-${CLEAN_VERSION}.tgz" "oci://ghcr.io/${{ github.repository_owner }}"
+          helm lint .
+          helm package .
+          # Dynamic wildcard matching for packed chart (.tgz)
+          helm push *.tgz "oci://ghcr.io/${{ github.repository_owner }}"
