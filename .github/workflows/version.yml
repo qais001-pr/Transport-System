@@ -12,21 +12,93 @@ jobs:
   release_and_update_helm_chart:
     runs-on: ubuntu-latest
     steps:
-      - name: CheckOut Repository
+      - name: CheckOut Main Repository
         uses: actions/checkout@v4
 
-      - name: CheckOut Other Repository
+      - name: CheckOut Deployment Repository
         uses: actions/checkout@v4
         with:
           repository: qais001-pr/School-Transport-System-Deployment
           token: ${{ secrets.HELM_TOKEN }}
           ref: "main"
-          path: "helm_source_code"
+          path: "School-Transport-System-Deployment"
 
-      - name: List Files (Debug)
+      - name: Setup Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: "v3.14.0"
+
+      # -------------------------------------------------------------
+      # 1. DOCKER HUB LOGIN & IMAGE BUILDS
+      # -------------------------------------------------------------
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and Push Frontend Docker Image
         run: |
-          echo "Main repo contents:"
-          ls -la
-          echo "Helm deployment repo contents:"
-          ls -la helm_source_code
-          echo "User Entered Version: ${{ inputs.tag_version }}"
+          cd backend
+          ls -a
+
+      - name: Build and Push Backend Docker Image
+        run: cd frontend && ls -a
+
+      # # -------------------------------------------------------------
+      # # 2. UPDATE HELM CHART & VALUES
+      # # -------------------------------------------------------------
+      # - name: Update Helm Chart, Values and Push Changes to Git
+      #   run: |
+      #     FULL_TAG="${{ inputs.tag_version }}"
+      #     CLEAN_VERSION=${FULL_TAG#v}
+
+      #     cd School-Transport-System-Deployment
+
+      #     # Agar chart sub-folder me ho to navigate karein
+      #     if [ -d "helm" ]; then cd helm; fi
+
+      #     # Chart version, App version aur Images update karein
+      #     yq -i ".version = \"${CLEAN_VERSION}\"" Chart.yaml
+      #     yq -i ".appVersion = \"${FULL_TAG}\"" Chart.yaml
+
+      #     # Docker Hub Image paths & Tags
+      #     yq -i ".client.image.repository = \"${{ secrets.DOCKERHUB_USERNAME }}/transport-frontend\"" values.yaml
+      #     yq -i ".client.image.tag = \"${FULL_TAG}\"" values.yaml
+      #     yq -i ".server.image.repository = \"${{ secrets.DOCKERHUB_USERNAME }}/transport-backend\"" values.yaml
+      #     yq -i ".server.image.tag = \"${FULL_TAG}\"" values.yaml
+
+      #     echo "--- Updated Chart.yaml ---"
+      #     cat Chart.yaml
+
+      #     # Git Config & Push to Deployment Repo
+      #     git config user.name "Muhammad Qais"
+      #     git config user.email "qaismuhammad742@gmail.com"
+      #     git add .
+      #     git commit -m "chore(helm): release version ${FULL_TAG} [skip ci]" || echo "No changes to commit"
+      #     git push origin main
+
+      # # -------------------------------------------------------------
+      # # 3. HELM OCI PACKAGE TO GHCR
+      # # -------------------------------------------------------------
+      # - name: Log in to GitHub Container Registry (GHCR)
+      #   uses: docker/login-action@v3
+      #   with:
+      #     registry: ghcr.io
+      #     username: ${{ github.actor }}
+      #     password: ${{ secrets.HELM_TOKEN }}
+
+      # - name: Package & Push Helm Chart to GHCR (OCI)
+      #   run: |
+      #     FULL_TAG="${{ inputs.tag_version }}"
+      #     CLEAN_VERSION=${FULL_TAG#v}
+
+      #     cd School-Transport-System-Deployment
+      #     if [ -d "helm" ]; then cd helm; fi
+
+      #     helm lint .
+      #     helm package .
+      #     helm push "School-Transport-System-Deployment-${CLEAN_VERSION}.tgz" "oci://ghcr.io/${{ github.repository_owner }}"
