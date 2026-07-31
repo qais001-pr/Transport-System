@@ -8,8 +8,7 @@ pipeline {
     stages {
 
         stage('Build Images') {
-            parallel {
-
+            
                 stage('Build Backend Docker Image') {
                     steps {
                         container('kaniko') {
@@ -45,10 +44,7 @@ pipeline {
                         }
                     }
                 }
-
             }
-        }
-
     }
 
     post {
