@@ -19,7 +19,6 @@ const { Counter } = require('prom-client');
 const server = http.createServer(app);
 // Create a Registry
 const register = new client.Registry();
-
 // Collect default Node.js metrics
 client.collectDefaultMetrics({ register });
 
@@ -50,8 +49,8 @@ app.get("/api/metrics", async (req, res) => {
   res.set("Content-Type", register.contentType);
   res.end(await register.metrics());
 });
-
-
+// Create a Loki Logger Object 
+const logger = require('./middlewares/loki')
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(body_parser.json());
@@ -103,8 +102,6 @@ app.use(
 );
 app.use("/uploads", express.static(path.resolve("uploads")));
 
-console.log("Serving uploads from:", path.join(__dirname, "uploads"));
-
 // app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // routes
@@ -123,6 +120,7 @@ app.use("/api/schools", require("./routes/schools/schoolRoutes"));
 app.use("/api/police", require("./routes/police/policeRoutes"));
 
 app.get("/", (req, res) => {
+  logger.info('Hello Message From Loki!.The Current Server Status is Running!');
   res.send("Welcome to the FYP Backend API");
 });
 
