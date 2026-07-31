@@ -42,37 +42,43 @@ jobs:
 
       - name: Build and Push Frontend Docker Image
         run: |
-          cd backend
-          ls -a
+          cd frontend
+          docker build \
+          --build-arg VITE_SOCKET_URL="${{ vars.VITE_SOCKET_URL }}" \
+          --build-arg VITE_API_URL="${{ vars.VITE_API_URL }}" \
+          --build-arg VITE_VAPID_PUBLIC_KEY="${{ vars.VITE_VAPID_PUBLIC_KEY }}" \
+          -t qais001/school-transport-web:${{ inputs.tag_version }} \
+          -f ./Dockerfile.k8s .
 
       - name: Build and Push Backend Docker Image
-        run: cd frontend && ls -a
+        run: cd backend
+          docker build -t qais001/school-transport-backend:${{ inputs.tag_version }} .
 
-      # # -------------------------------------------------------------
-      # # 2. UPDATE HELM CHART & VALUES
-      # # -------------------------------------------------------------
-      # - name: Update Helm Chart, Values and Push Changes to Git
-      #   run: |
-      #     FULL_TAG="${{ inputs.tag_version }}"
-      #     CLEAN_VERSION=${FULL_TAG#v}
+      # -------------------------------------------------------------
+      # 2. UPDATE HELM CHART & VALUES
+      # -------------------------------------------------------------
+      - name: Update Helm Chart, Values and Push Changes to Git
+        run: |
+          FULL_TAG="${{ inputs.tag_version }}"
+          CLEAN_VERSION=${FULL_TAG#v}
 
-      #     cd School-Transport-System-Deployment
+          cd School-Transport-System-Deployment
 
-      #     # Agar chart sub-folder me ho to navigate karein
-      #     if [ -d "helm" ]; then cd helm; fi
+          # Agar chart sub-folder me ho to navigate karein
+          if [ -d "helm" ]; then cd helm; fi
 
-      #     # Chart version, App version aur Images update karein
-      #     yq -i ".version = \"${CLEAN_VERSION}\"" Chart.yaml
-      #     yq -i ".appVersion = \"${FULL_TAG}\"" Chart.yaml
+          # Chart version, App version aur Images update karein
+          yq -i ".version = \"${CLEAN_VERSION}\"" Chart.yaml
+          yq -i ".appVersion = \"${FULL_TAG}\"" Chart.yaml
 
-      #     # Docker Hub Image paths & Tags
-      #     yq -i ".client.image.repository = \"${{ secrets.DOCKERHUB_USERNAME }}/transport-frontend\"" values.yaml
-      #     yq -i ".client.image.tag = \"${FULL_TAG}\"" values.yaml
-      #     yq -i ".server.image.repository = \"${{ secrets.DOCKERHUB_USERNAME }}/transport-backend\"" values.yaml
-      #     yq -i ".server.image.tag = \"${FULL_TAG}\"" values.yaml
+          # Docker Hub Image paths & Tags
+          yq -i ".client.image.repository = ${{}}" values.yaml
+          yq -i ".client.image.tag = \"${FULL_TAG}\"" values.yaml
+          yq -i ".server.image.repository = ${{}}" values.yaml
+          yq -i ".server.image.tag = \"${FULL_TAG}\"" values.yaml
 
-      #     echo "--- Updated Chart.yaml ---"
-      #     cat Chart.yaml
+          echo "--- Updated Chart.yaml ---"
+          cat Chart.yaml
 
       #     # Git Config & Push to Deployment Repo
       #     git config user.name "Muhammad Qais"
