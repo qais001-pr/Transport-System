@@ -1,23 +1,32 @@
 name: Make a Version By Using Tag & update a Helm Chart
 
 on:
-  workflow_run:
+  workflow_dispatch:
+    inputs:
+      tag_version:
+        description: "Enter Git Tag/Version (e.g. v1.0.0)"
+        required: true
+        default: "v1.0.0"
+
 jobs:
   release_and_update_helm_chart:
     runs-on: ubuntu-latest
     steps:
-     - name: CheckOut Repository
-       uses: actions/checkout@v4
-     - name: CheckOut Other Repository
-       uses: actions/checkout@v4
-       with:
-         repository: qais001-pr/School-Transport-System-Deployment
-         token: ${{ secrets.HELM_TOKEN }}
-         ref: 'main'
-         path: 'helm_source_code'
-     - name: List Files (Debug)
-       run: |
+      - name: CheckOut Repository
+        uses: actions/checkout@v4
+
+      - name: CheckOut Other Repository
+        uses: actions/checkout@v4
+        with:
+          repository: qais001-pr/School-Transport-System-Deployment
+          token: ${{ secrets.HELM_TOKEN }}
+          ref: "main"
+          path: "helm_source_code"
+
+      - name: List Files (Debug)
+        run: |
           echo "Main repo contents:"
           ls -la
           echo "Helm deployment repo contents:"
           ls -la helm_source_code
+          echo "User Entered Version: ${{ inputs.tag_version }}"
