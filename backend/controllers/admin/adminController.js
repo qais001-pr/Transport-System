@@ -1,14 +1,27 @@
 const { pool } = require("../../utils/dbConnection");
-
+const logger = require('../../middlewares/loki')
 const pendingVerificationDriversRequests = async (req, res) => {
   try {
     const { page = 1, limit = 10 } = req.query;
     const offset = (page - 1) * limit;
-
+    logger.info({
+      message: "Pending driver verification request received",
+      page: Number(page),
+      limit: Number(limit),
+      offset: Number(offset),
+      route: req.originalUrl,
+      method: req.method,
+    });
     if (page < 1 || offset < 0) {
+      logger.warn({
+        message: "Invalid pagination values",
+        page,
+        limit,
+        offset,
+      });
+
       return res.status(400).json({ message: "Invalid page or offset values" });
     }
-
     const query = `
       SELECT 
         U.id AS user_id,
@@ -27,12 +40,27 @@ const pendingVerificationDriversRequests = async (req, res) => {
       ORDER BY D.id DESC
       LIMIT $1 OFFSET $2
     `;
-
+    logger.info({
+      message: "Fetching pending driver verification requests from database",
+    });
     const result = await pool.query(query, [limit, offset]);
 
     if (result.rowCount === 0) {
+      logger.warn({
+        message: "No pending driver verification requests found",
+        page: Number(page),
+        limit: Number(limit),
+      });
       return res.status(404).json({ message: "No pending driver verification requests found" });
     }
+
+
+    logger.info({
+      message: "Pending driver verification requests fetched successfully",
+      totalRecords: result.rowCount,
+      page: Number(page),
+      limit: Number(limit),
+    });
 
     return res.status(200).json({
       message: "Pending verification drivers fetched successfully",
@@ -42,6 +70,11 @@ const pendingVerificationDriversRequests = async (req, res) => {
       data: result.rows,
     });
   } catch (error) {
+    logger.error({
+      message: "Error fetching pending driver verification requests",
+      error: error.message,
+      stack: error.stack,
+    });
     console.error("Pending Driver Verification Error:", error);
     return res.status(500).json({ message: "Internal Server Error" });
   }
