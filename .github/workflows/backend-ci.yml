@@ -58,24 +58,12 @@ jobs:
 
       - name: Update Helm Chart, Values and Push Changes to Git
         run: |
-          FULL_TAG="${{ inputs.tag_version }}"
-          CLEAN_VERSION=${FULL_TAG#v}
+          FULL_TAG="${{ inputs.sha }}"
 
           cd School-Transport-System-Deployment
 
-          # Agar chart sub-folder me ho to navigate karein
-          if [ -d "helm" ]; then cd helm; fi
-
-          # Chart version, App version aur Images update karein
-          yq -i ".version = \"${CLEAN_VERSION}\"" Chart.yaml
-          yq -i ".appVersion = \"${FULL_TAG}\"" Chart.yaml
-
           # Docker Hub Image tags update karein
-          yq -i ".client.image.tag = \"${FULL_TAG}\"" values.yaml
           yq -i ".server.image.tag = \"${FULL_TAG}\"" values.yaml
-
-          echo "--- Updated Chart.yaml ---"
-          cat Chart.yaml
 
           # Git Config & Push to Deployment Repo
           git config user.name "Muhammad Qais"
