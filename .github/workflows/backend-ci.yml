@@ -64,7 +64,13 @@ jobs:
       - name: Push Docker Image
         run: |
           docker push qais001/school-transport-system:${{ github.sha }}
-
+      - name: CheckOut Deployment Repository
+        uses: actions/checkout@v4
+        with:
+          repository: qais001-pr/School-Transport-System-Deployment
+          token: ${{ secrets.HELM_TOKEN }}
+          ref: "main"
+          path: "School-Transport-System-Deployment"
       - name: Update Helm Chart, Values and Push Changes to Git
         run: |
           FULL_TAG="${{ github.sha }}"
