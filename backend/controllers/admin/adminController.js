@@ -195,18 +195,49 @@ const allComplaints = async (req, res) => {
 
 complaintDetails = async (req, res) => {
   try {
+
     const id = req.params.complaintId;
     const result = await pool.query("SELECT * FROM complaints WHERE id = $1", [
       id,
     ]);
+
+    logger.info({
+      message: "Complaint details request received",
+      complaintId,
+      route: req.originalUrl,
+      method: req.method,
+    });
+
+    logger.info({
+      message: "Fetching complaint details from database",
+      complaintId,
+    });
+
     if (result.rows.length === 0) {
+      logger.warn({
+        message: "Complaint not found",
+        complaintId,
+      });
+
       return res.status(404).json({ message: "Complaint not found" });
     }
+
+    logger.info({
+      message: "Complaint details fetched successfully",
+      complaintId,
+    });
     return res.status(200).json({
       message: "Complaint details fetched successfully",
       data: result.rows[0],
     });
   } catch (error) {
+    logger.error({
+      message: "Failed to fetch complaint details",
+      complaintId: req.params.complaintId,
+      error: error.message,
+      stack: error.stack,
+    });
+
     return res
       .status(500)
       .json({ message: "Server Error", error: error.message });
