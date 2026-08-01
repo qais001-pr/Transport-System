@@ -153,6 +153,15 @@ const updateDriverVerification = async (req, res) => {
 
 const allComplaints = async (req, res) => {
   try {
+    logger.info({
+      message: "Fetch all complaints request received",
+      route: req.originalUrl,
+      method: req.method,
+    });
+
+    logger.info({
+      message: "Fetching complaints from database",
+    });
     const result = await pool.query(`
       SELECT C.*,
              U.full_name AS parent_name,
@@ -164,12 +173,21 @@ const allComplaints = async (req, res) => {
       LEFT JOIN schools S ON S.id = C.school_id
       ORDER BY C.id DESC
     `);
+    logger.info({
+      message: "Complaints fetched successfully",
+      totalComplaints: result.rowCount,
+    });
 
     return res.status(200).json({
       message: "Complaints fetched successfully",
       data: result.rows,
     });
   } catch (error) {
+    logger.error({
+      message: "Failed to fetch complaints",
+      error: error.message,
+      stack: error.stack,
+    });
     return res.status(500).json({ message: "Server Error", error: error.message });
   }
 };
