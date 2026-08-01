@@ -45,8 +45,10 @@ jobs:
           verbose: true
           hard-fail: true
 
-      - name: Build Docker Image
-        run: docker build --pull --no-cache -t backend:test ./backend
+      - name: Build and Push Backend Docker Image
+        run: |
+          cd backend
+          docker build -t qais001/school-transport-system:${{ inputs.sha }} .
 
       - name: Scan Docker Image
         uses: aquasecurity/trivy-action@master
@@ -55,3 +57,35 @@ jobs:
           format: table
           severity: CRITICAL,HIGH
           exit-code: 0
+
+      - name: Push Docker Image
+        run: |
+          docker push qais001/school-transport-system:${{ inputs.sha }}
+
+      - name: Update Helm Chart, Values and Push Changes to Git
+        run: |
+          FULL_TAG="${{ inputs.tag_version }}"
+          CLEAN_VERSION=${FULL_TAG#v}
+
+          cd School-Transport-System-Deployment
+
+          # Agar chart sub-folder me ho to navigate karein
+          if [ -d "helm" ]; then cd helm; fi
+
+          # Chart version, App version aur Images update karein
+          yq -i ".version = \"${CLEAN_VERSION}\"" Chart.yaml
+          yq -i ".appVersion = \"${FULL_TAG}\"" Chart.yaml
+
+          # Docker Hub Image tags update karein
+          yq -i ".client.image.tag = \"${FULL_TAG}\"" values.yaml
+          yq -i ".server.image.tag = \"${FULL_TAG}\"" values.yaml
+
+          echo "--- Updated Chart.yaml ---"
+          cat Chart.yaml
+
+          # Git Config & Push to Deployment Repo
+          git config user.name "Muhammad Qais"
+          git config user.email "qaismuhammad742@gmail.com"
+          git add .
+          git commit -m "chore(helm): release version ${FULL_TAG} [skip ci]" || echo "No changes to commit"
+          git push origin main
