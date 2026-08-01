@@ -7,7 +7,7 @@ const {
   sendPasswordResetEmail,
 } = require("../../common/sendEmail");
 const { uploadFile } = require("../../middlewares/helper");
-
+const logger = require('../../middlewares/loki');
 const registerUser = async (req, res) => {
   try {
     const { full_name, email, phone, password, role, branch_id, schoolName } =
