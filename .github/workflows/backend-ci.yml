@@ -5,12 +5,6 @@ permissions:
   security-events: write
 
 on:
-  push:
-    branches:
-      - update
-    paths:
-      - "backend/**"
-
   pull_request:
     branches:
       - main
