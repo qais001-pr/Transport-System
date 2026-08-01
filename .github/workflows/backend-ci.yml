@@ -39,26 +39,35 @@ jobs:
           verbose: true
           hard-fail: true
 
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
       - name: Build and Push Backend Docker Image
         run: |
           cd backend
-          docker build -t qais001/school-transport-system:${{ inputs.sha }} .
+          docker build -t qais001/school-transport-system:${{ github.sha }} .
 
       - name: Scan Docker Image
         uses: aquasecurity/trivy-action@master
         with:
-          image-ref: backend:test
+          image-ref: qais001/school-transport-system:${{ github.sha }}
           format: table
           severity: CRITICAL,HIGH
           exit-code: 0
 
       - name: Push Docker Image
         run: |
-          docker push qais001/school-transport-system:${{ inputs.sha }}
+          docker push qais001/school-transport-system:${{ github.sha }}
 
       - name: Update Helm Chart, Values and Push Changes to Git
         run: |
-          FULL_TAG="${{ inputs.sha }}"
+          FULL_TAG="${{ github.sha }}"
 
           cd School-Transport-System-Deployment
 
