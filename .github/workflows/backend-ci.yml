@@ -75,9 +75,9 @@ jobs:
         run: |
           FULL_TAG="${{ github.sha }}"
 
-          cd School-Transport-System-Deployment
+          cd School-Transport-System-Deployment/helm
 
-          # Docker Hub Image tags update karein
+          # Update BackEnd Image Tag
           yq -i ".server.image.tag = \"${FULL_TAG}\"" values.yaml
 
           # Git Config & Push to Deployment Repo
