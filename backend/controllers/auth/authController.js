@@ -203,9 +203,20 @@ const registerUser = async (req, res) => {
 
 const loginUser = async (req, res) => {
   const { email, phone, password } = req.body;
+  logger.info({
+    message: "User login request received",
+    email,
+    phone,
+    route: req.originalUrl,
+    method: req.method,
+  });
 
   try {
-    console.log({ email, phone, password });
+    // console.log({ email, phone, password });
+    logger.info({
+      message: "Fetching user from database",
+      email,
+    });
     await pool.query("BEGIN");
     const u = await pool.query(
       `
@@ -216,22 +227,44 @@ const loginUser = async (req, res) => {
     );
 
     if (!u.rowCount) {
+      logger.warn({
+        message: "Login failed - user not found",
+        email,
+      });
       await pool.query("ROLLBACK");
       return res.status(400).json({ message: "Invalid credentials" });
     }
 
     const user = u.rows[0];
+    logger.info({
+      message: "User found",
+      userId: user.id,
+      email: user.email,
+      role: user.role,
+    });
     const driverApproval = await pool.query(
       "SELECT status FROM driver_approvals WHERE driver_id=$1",
       [user.id],
     );
 
-    if (!user.is_verified)
+    if (!user.is_verified) {
+      logger.warn({
+        message: "Login denied - account not verified",
+        userId: user.id,
+        email: user.email,
+      });
       return res.status(403).json({ message: "Verify OTP first" });
+    }
     if (
       user.role === "DRIVER" &&
       driverApproval.rows[0]?.status !== "APPROVED"
     ) {
+      logger.warn({
+        message: "Driver login denied - approval pending",
+        userId: user.id,
+        email: user.email,
+        approvalStatus: driverApproval.rows[0]?.status,
+      });
       await pool.query("ROLLBACK");
       return res.status(403).json({
         message:
@@ -244,17 +277,36 @@ const loginUser = async (req, res) => {
       [user.id],
     );
     if (!sg.rows[0].exists && user.role === "GUARD") {
+      logger.warn({
+        message: "Guard login denied - approval pending",
+        userId: user.id,
+        email: user.email,
+      });
       await pool.query("ROLLBACK");
       return res.status(403).json({
         message:
           "Guard not approved please wait for approval by school authority",
       });
     }
+    logger.info({
+      message: "Verifying user password",
+      userId: user.id,
+    });
     const ok = await bcrypt.compare(password, user.password);
     if (!ok) {
+      logger.warn({
+        message: "Login failed - incorrect password",
+        userId: user.id,
+        email: user.email,
+      });
       await pool.query("ROLLBACK");
       return res.status(400).json({ message: "Email or password incorrect" });
     }
+    logger.info({
+      message: "Generating JWT token",
+      userId: user.id,
+      role: user.role,
+    });
     const token = jwt.sign(
       { id: user.id, role: user.role },
       process.env.JWT_SECRET,
@@ -266,16 +318,31 @@ const loginUser = async (req, res) => {
     // } catch (emailError) {
     //   console.error("Failed to send welcome email:", emailError);
     // }
+    logger.info({
+      message: "Updating last login timestamp",
+      userId: user.id,
+    });
 
     await pool.query("COMMIT");
     await pool.query(`UPDATE users SET last_login=NOW() WHERE id=$1`, [
       user.id,
     ]);
-
+    logger.info({
+      message: "User logged in successfully",
+      userId: user.id,
+      email: user.email,
+      role: user.role,
+    });
     return res
       .status(200)
       .json({ message: "Login successful", role: user.role, token });
   } catch (error) {
+    logger.error({
+      message: "Login process failed",
+      email,
+      error: error.message,
+      stack: error.stack,
+    });
     await pool.query("ROLLBACK");
     return res.status(500).json({ error: error.message });
   }
