@@ -84,6 +84,17 @@ const updateDriverVerification = async (req, res) => {
   try {
     const { documentId } = req.params;
     const { is_verified } = req.body;
+    logger.info({
+      message: "Driver verification update request received",
+      documentId,
+      is_verified,
+      route: req.originalUrl,
+      method: req.method,
+    });
+    logger.info({
+      message: "Checking driver document",
+      documentId,
+    });
 
     const docCheck = await pool.query(
       "SELECT is_verified FROM driver_documents WHERE id = $1",
@@ -91,12 +102,27 @@ const updateDriverVerification = async (req, res) => {
     );
 
     if (!docCheck.rows[0]) {
+      logger.warn({
+        message: "Driver document not found",
+        documentId,
+      });
+
       return res.status(404).json({ message: "Driver document not found" });
     }
 
     if (docCheck.rows[0].is_verified) {
+      logger.warn({
+        message: "Driver already verified",
+        documentId,
+      });
       return res.status(400).json({ message: "Driver already verified" });
     }
+
+    logger.info({
+      message: "Updating driver verification status",
+      documentId,
+      verificationStatus: is_verified,
+    });
 
     const updateQuery = `
       UPDATE driver_documents
@@ -105,12 +131,22 @@ const updateDriverVerification = async (req, res) => {
       RETURNING *
     `;
     const result = await pool.query(updateQuery, [is_verified, documentId]);
-
+    logger.info({
+      message: "Driver verification status updated successfully",
+      documentId,
+      verificationStatus: result.rows[0].is_verified,
+    });
     return res.status(200).json({
       message: "Driver verification status updated successfully",
       data: result.rows[0],
     });
   } catch (error) {
+    logger.error({
+      message: "Failed to update driver verification status",
+      documentId: req.params.documentId,
+      error: error.message,
+      stack: error.stack,
+    });
     return res.status(500).json({ message: "Server Error", error: error.message });
   }
 };
