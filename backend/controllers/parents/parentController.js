@@ -1,5 +1,7 @@
 const { pool } = require("../../utils/dbConnection");
 const cron = require("node-cron");
+const logger = require('../../middlewares/loki');
+
 
 addChildren = async (req, res) => {
   try {
@@ -19,20 +21,10 @@ addChildren = async (req, res) => {
     } = req.body;
     const parent_id = req.user.id;
 
-    console.log({
-      branch_id,
-      school_id,
-      parent_id,
+    logger.info({
+      message: "Add child request received",
       full_name,
-      date_of_birth,
-      gender,
       grade,
-      emergency_contact,
-      disease,
-      requires_girls_only,
-      pickup_address,
-      latitude,
-      longitude,
     });
 
     const parent = await pool.query(
@@ -40,15 +32,38 @@ addChildren = async (req, res) => {
       [parent_id],
     );
 
-    if (!parent.rows.length)
+    if (!parent.rows.length) {
+      logger.warn({
+        message: "Parent not found while adding child",
+        parent_id,
+      });
       return res.status(403).json({ message: "Parent not found" });
+    }
 
+
+    logger.info({
+      message: "Parent validation successful",
+      parent_id,
+    });
     const school = await pool.query(
       "SELECT id FROM schools WHERE id=$1 AND is_active=true AND service_active=true",
       [school_id],
     );
-    if (!school.rows.length)
+
+    if (!school.rows.length) {
+      logger.warn({
+        message: "School service is inactive",
+        school_id,
+        parent_id,
+      });
+
       return res.status(400).json({ message: "School service inactive" });
+    }
+
+    logger.info({
+      message: "School validation successful",
+      school_id,
+    });
 
     let child_pic = req.files?.child_pic?.[0]?.path;
     const requiresGirlsOnly =
@@ -74,14 +89,34 @@ addChildren = async (req, res) => {
         longitude,
       ],
     );
+    logger.info({
+      message: "Child added successfully",
+      child_id: child.rows[0].id,
+      parent_id,
+      school_id,
+      branch_id,
+      full_name,
+    });
 
     res.status(201).json({ message: "Child added", childId: child.rows[0].id });
   } catch (e) {
+    logger.error({
+      message: "Failed to add child",
+      error: e.message,
+      stack: e.stack,
+      parent_id: req.user?.id,
+      requestBody: req.body,
+    });
     res.status(500).json({ error: e.message });
   }
 };
 
 getChildren = async (req, res) => {
+
+  logger.info({
+    message: "Fetching children for parent",
+    parent_id,
+  });
   try {
     const children = await pool.query(
       `
@@ -103,18 +138,46 @@ getChildren = async (req, res) => {
       [req.user.id],
     );
 
+    logger.info({
+      message: "Children fetched successfully",
+      parent_id,
+      total_children: children.rowCount,
+    });
     res.json(children.rows);
   } catch (err) {
+    logger.error({
+      message: "Failed to fetch children",
+      parent_id: req.user?.id,
+      error: err.message,
+      stack: err.stack,
+    });
     res.status(500).json({ error: err.message });
   }
 };
 
 getChildDetails = async (req, res) => {
+  logger.info({
+    message: "Fetching child details",
+    child_id: childId,
+    parent_id,
+  });
   const child = await pool.query(
     "SELECT * FROM children WHERE id=$1 AND parent_id=$2",
     [req.params.childId, req.user.id],
   );
-  if (!child.rows.length) return res.status(404).json({ message: "Not found" });
+  if (!child.rows.length) {
+    logger.warn({
+      message: "Child not found",
+      child_id: childId,
+      parent_id,
+    });
+    return res.status(404).json({ message: "Not found" });
+  }
+  logger.info({
+    message: "Child details fetched successfully",
+    child_id: childId,
+    parent_id,
+  });
   res.json(child.rows[0]);
 };
 
@@ -135,19 +198,11 @@ updateChild = async (req, res) => {
       longitude,
     } = req.body;
 
-    console.log({
-      branch_id,
-      school_id,
+    logger.info({
+      message: "Update child request received",
+      child_id: childId,
       full_name,
-      date_of_birth,
       gender,
-      grade,
-      emergency_contact,
-      disease,
-      requires_girls_only,
-      pickup_address,
-      latitude,
-      longitude,
     });
 
     const updates = [];
@@ -227,6 +282,11 @@ updateChild = async (req, res) => {
     }
 
     if (updates.length === 0) {
+      logger.warn({
+        message: "No fields provided for child update",
+        child_id: childId,
+        parent_id,
+      });
       return res.status(400).json({ message: "No fields to update" });
     }
 
@@ -241,26 +301,68 @@ updateChild = async (req, res) => {
 
     const child = await pool.query(query, values);
 
-    if (!child.rows.length)
+    if (!child.rows.length) {
+      logger.warn({
+        message: "Child not found for update",
+        child_id: childId,
+        parent_id,
+      });
       return res.status(404).json({ message: "Child not found" });
+    }
+    logger.info({
+      message: "Child updated successfully",
+      child_id: child.rows[0].id,
+      parent_id,
+    });
     res.json({ message: "Updated", childId: child.rows[0].id });
   } catch (e) {
+    logger.error({
+      message: "Failed to update child",
+      child_id: req.params.childId,
+      parent_id: req.user?.id,
+      error: err.message,
+      stack: err.stack,
+    });
     res.status(500).json({ error: e.message });
   }
 };
 
 deleteChild = async (req, res) => {
+  logger.info({
+    message: "Delete child request received",
+    parent_id: req.user.id,
+    child_id: req.params.childId,
+  });
   const del = await pool.query(
     "DELETE FROM children WHERE id=$1 AND parent_id=$2 RETURNING id",
     [req.params.childId, req.user.id],
   );
-  if (!del.rows.length) return res.status(404).json({ message: "Not found" });
+  if (!del.rows.length) {
+    logger.warn({
+      message: "Child not found for deletion",
+      parent_id: req.user.id,
+      child_id: req.params.childId,
+    });
+    return res.status(404).json({ message: "Not found" });
+  }
+  logger.info({
+    message: "Child deleted successfully",
+    parent_id: req.user.id,
+    child_id: del.rows[0].id,
+  });
   res.json({ message: "Deleted" });
 };
 
 getFeedback = async (req, res) => {
   try {
     const { driver_id, child_id, rating, comments } = req.body;
+    logger.info({
+      message: "Driver feedback request received",
+      parent_id: req.user.id,
+      driver_id,
+      child_id,
+      rating,
+    });
     await pool.query("BEGIN");
     const exists = await pool.query(
       "SELECT id FROM users WHERE id=$1 AND role='DRIVER'",
@@ -268,6 +370,11 @@ getFeedback = async (req, res) => {
     );
     if (!exists.rows.length) {
       await pool.query("ROLLBACK");
+      logger.warn({
+        message: "Driver not found",
+        driver_id,
+        parent_id: req.user.id,
+      });
       return res.status(404).json({ message: "Driver not found" });
     }
 
@@ -277,10 +384,25 @@ getFeedback = async (req, res) => {
       [driver_id, req.user.id, child_id, rating, comments],
     );
     await pool.query("COMMIT");
+    logger.info({
+      message: "Driver rated successfully",
+      parent_id: req.user.id,
+      driver_id,
+      child_id,
+      rating,
+    });
     res
       .status(201)
       .json({ message: "You have rated successfully", rating: fb.rows[0] });
   } catch (error) {
+    logger.error({
+      message: "Failed to submit driver feedback",
+      parent_id: req.user?.id,
+      driver_id,
+      child_id,
+      error: error.message,
+      stack: error.stack,
+    });
     await pool.query("ROLLBACK");
     res.status(500).json({ error: error.message });
   }
@@ -290,11 +412,23 @@ getVanFeedback = async (req, res) => {
   try {
     const { van_id, rating, comments } = req.body;
 
-    console.log({ van_id, rating, comments });
+
+    logger.info({
+      message: "Van feedback request received",
+      parent_id: req.user.id,
+      van_id,
+      rating,
+    });
 
     const ratingInt = Number(rating);
 
     if (!Number.isInteger(ratingInt) || ratingInt < 1 || ratingInt > 5) {
+      logger.warn({
+        message: "Invalid van rating",
+        parent_id: req.user.id,
+        van_id,
+        rating,
+      });
       return res.status(400).json({
         message: "Rating must be an integer between 1 and 5",
       });
@@ -308,6 +442,11 @@ getVanFeedback = async (req, res) => {
 
     if (!exists.rows.length) {
       await pool.query("ROLLBACK");
+      logger.warn({
+        message: "Van not found",
+        parent_id: req.user.id,
+        van_id,
+      });
       return res.status(404).json({ message: "Van not found" });
     }
 
@@ -324,6 +463,9 @@ getVanFeedback = async (req, res) => {
         "UPDATE van_ratings SET rating=$1, comments=$2 WHERE van_id=$3 AND parent_id=$4 RETURNING *",
         [ratingInt, comments, van_id, req.user.id],
       );
+      logger.info({
+        message: "Van rating updated",
+      });
     } else {
       // Insert new rating
       fb = await pool.query(
@@ -333,18 +475,34 @@ getVanFeedback = async (req, res) => {
     }
 
     await pool.query("COMMIT");
-
+    logger.info({
+      message: "Van rated successfully",
+      parent_id: req.user.id,
+      van_id,
+      rating: ratingInt,
+    });
     res.status(201).json({
       message: "You have rated successfully",
       rating: fb.rows[0],
     });
   } catch (error) {
+    logger.error({
+      message: "Failed to submit van feedback",
+      parent_id: req.user?.id,
+      van_id,
+      error: error.message,
+      stack: error.stack,
+    });
     await pool.query("ROLLBACK");
     res.status(500).json({ error: error.message });
   }
 };
 
 getFeedbackHistory = async (req, res) => {
+  logger.info({
+    message: "Fetching driver feedback history",
+    parent_id: req.user.id,
+  });
   const data = await pool.query(
     `SELECT d.id, d.full_name AS driver, r.rating, r.comments, r.created_at
      FROM driver_ratings r
@@ -353,30 +511,58 @@ getFeedbackHistory = async (req, res) => {
      ORDER BY r.created_at DESC`,
     [req.user.id],
   );
+  logger.info({
+    message: "Driver feedback history fetched",
+    parent_id: req.user.id,
+    total_feedbacks: data.rowCount,
+  });
   res.json(data.rows);
 };
 
 doComplaints = async (req, res) => {
   const { driver_id, school_id, description } = req.body;
-
+  logger.info({
+    message: "Complaint submission request received",
+    parent_id: req.user.id,
+    driver_id,
+    school_id,
+  });
   const comp = await pool.query(
     `INSERT INTO complaints (parent_id,driver_id,school_id,description)
      VALUES ($1,$2,$3,$4) RETURNING *`,
     [req.user.id, driver_id, school_id, description],
   );
-
+  logger.info({
+    message: "Complaint submitted successfully",
+    complaint_id: comp.rows[0].id,
+    parent_id: req.user.id,
+    driver_id,
+    school_id,
+  });
   res.status(201).json({ message: "Complaint filed", complaint: comp.rows[0] });
 };
 
 getComplaintsHistory = async (req, res) => {
+  logger.info({
+    message: "Fetching complaints history",
+    parent_id: req.user.id,
+  });
   const rows = await pool.query(
     "SELECT * FROM complaints WHERE parent_id=$1 ORDER BY created_at DESC",
     [req.user.id],
   );
+  logger.info({
+    message: "Complaints history fetched successfully",
+    parent_id: req.user.id,
+    total_complaints: rows.rowCount,
+  });
   res.json(rows.rows);
 };
-
 getAllBookedDrivers = async (req, res) => {
+  logger.info({
+    message: "Fetching booked drivers",
+    parent_id: req.user.id,
+  });
   const data = await pool.query(
     `SELECT DISTINCT ON (d.id)
     d.id,
@@ -397,10 +583,19 @@ WHERE c.parent_id = $1
 ORDER BY d.id, b.booked_at DESC;`,
     [req.user.id],
   );
+  logger.info({
+    message: "Booked drivers fetched successfully",
+    parent_id: req.user.id,
+    total_drivers: data.rowCount,
+  });
   res.json(data.rows);
 };
 
 const getChildrenForLeave = async (req, res) => {
+  logger.info({
+    message: "Fetching children eligible for leave",
+    parent_id: req.user.id,
+  });
   try {
     const data = await pool.query(
       `
@@ -414,7 +609,11 @@ const getChildrenForLeave = async (req, res) => {
       `,
       [req.user.id],
     );
-
+    logger.info({
+      message: "Eligible children fetched successfully",
+      parent_id: req.user.id,
+      total_children: data.rowCount,
+    });
     return res.json(data.rows);
   } catch (error) {
     return res.status(500).json({ error: error.message });
@@ -422,6 +621,10 @@ const getChildrenForLeave = async (req, res) => {
 };
 
 getLeaveHistory = async (req, res) => {
+  logger.info({
+    message: "Fetching leave history",
+    parent_id: req.user.id,
+  });
   try {
     const data = await pool.query(
       `SELECT c.full_name AS child_name, cl.id, cl.reason, cl.leave_days, cl.created_at, cl.leave_date 
@@ -430,8 +633,19 @@ getLeaveHistory = async (req, res) => {
      WHERE parent_id=$1 ORDER BY created_at DESC`,
       [req.user.id],
     );
+    logger.info({
+      message: "Leave history fetched successfully",
+      parent_id: req.user.id,
+      total_records: data.rowCount,
+    });
     res.json(data.rows);
   } catch (error) {
+    logger.error({
+      message: "Failed to fetch leave history",
+      parent_id: req.user?.id,
+      error: error.message,
+      stack: error.stack,
+    });
     res.status(500).json({ error: error.message });
   }
 };
@@ -442,10 +656,11 @@ const leaveChildren = async (req, res) => {
 
     const { childId, childIds, reason, leave_days, leave_date, isMultiple } =
       req.body;
-    console.log({
+    logger.info({
+      message: "Leave request received",
+      parent_id: req.user.id,
       childId,
       childIds,
-      reason,
       leave_days,
       leave_date,
       isMultiple,
@@ -459,6 +674,11 @@ const leaveChildren = async (req, res) => {
 
       if (!childCheck.rows.length) {
         await pool.query("ROLLBACK");
+        logger.warn({
+          message: "Child not found for leave request",
+          parent_id: req.user.id,
+          child_id: childId,
+        });
         return res.status(404).json({ message: "Child not found" });
       }
 
@@ -469,6 +689,11 @@ const leaveChildren = async (req, res) => {
 
       if (exists.rows.length) {
         await pool.query("ROLLBACK");
+        logger.warn({
+          message: "Leave already exists",
+          parent_id: req.user.id,
+          child_id: childId,
+        });
         return res.status(400).json({
           message: "Leave already exists for this child",
         });
@@ -501,7 +726,12 @@ const leaveChildren = async (req, res) => {
       ]);
 
       await pool.query("COMMIT");
-
+      logger.info({
+        message: "Leave added successfully",
+        parent_id: req.user.id,
+        child_id: childId,
+        leave_days,
+      });
       return res.json({
         message: "Leave added successfully",
         data: insert.rows[0],
@@ -509,6 +739,10 @@ const leaveChildren = async (req, res) => {
     }
 
     if (!Array.isArray(childIds) || childIds.length === 0) {
+      logger.warn({
+        message: "Invalid childIds array",
+        parent_id: req.user.id,
+      });
       await pool.query("ROLLBACK");
       return res.status(400).json({
         message: "childIds must be a non-empty array",
@@ -525,6 +759,12 @@ const leaveChildren = async (req, res) => {
       );
 
       if (!childCheck.rows.length) {
+        logger.warn({
+          message: "Child skipped during leave processing",
+          parent_id: req.user.id,
+          child_id: id,
+          reason: "Child not found",
+        });
         skipped.push({ childId: id, reason: "Child not found" });
         continue;
       }
@@ -535,6 +775,12 @@ const leaveChildren = async (req, res) => {
       );
 
       if (exists.rows.length) {
+        logger.warn({
+          message: "Child skipped during leave processing",
+          parent_id: req.user.id,
+          child_id: id,
+          reason: "Leave already exists",
+        });
         skipped.push({
           childId: id,
           reason: "Leave already exists for this child",
@@ -563,7 +809,12 @@ const leaveChildren = async (req, res) => {
   RETURNING *`,
         [childId, reason, leave_date, leave_days],
       );
-
+      logger.info({
+        message: "Multiple leave request processed",
+        parent_id: req.user.id,
+        added_count: added.length,
+        skipped_count: skipped.length,
+      });
       await pool.query("UPDATE children set on_leave=true WHERE id=$1", [
         childId,
       ]);
@@ -573,6 +824,11 @@ const leaveChildren = async (req, res) => {
 
     if (added.length === 0) {
       await pool.query("ROLLBACK");
+      logger.warn({
+        message: "No leave requests were processed",
+        parent_id: req.user.id,
+        skipped_count: skipped.length,
+      });
       return res.status(400).json({
         message:
           "No leaves added (all skipped) beacause children already have leaves or not found",
@@ -588,6 +844,14 @@ const leaveChildren = async (req, res) => {
       skipped,
     });
   } catch (e) {
+    logger.error({
+      message: "Failed to process leave request",
+      parent_id: req.user?.id,
+      child_id: childId,
+      child_ids: childIds,
+      error: e.message,
+      stack: e.stack,
+    });
     await pool.query("ROLLBACK");
     return res.status(500).json({ error: e.message });
   }
@@ -595,6 +859,7 @@ const leaveChildren = async (req, res) => {
 
 const autoResetLeaves = async () => {
   try {
+
     const result = await pool.query(`
       UPDATE children c
       SET on_leave = false
@@ -612,8 +877,16 @@ const autoResetLeaves = async () => {
     `);
 
     console.log("Expired leaves reset successfully");
+    logger.info({
+      message: "Expired leaves reset successfully",
+      affected_children: result.rowCount,
+    });
   } catch (e) {
-    console.log(e);
+    logger.error({
+      message: "Failed to auto reset expired leaves",
+      error: e.message,
+      stack: e.stack,
+    });
   }
 };
 

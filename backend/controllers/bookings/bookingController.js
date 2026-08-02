@@ -3,7 +3,17 @@ const { pool } = require("../../utils/dbConnection");
 const getBookings = async (req, res) => {
   try {
     const parentId = req.user.id;
+    logger.info({
+      message: "Parent bookings request received",
+      parentId,
+      route: req.originalUrl,
+      method: req.method,
+    });
 
+    logger.info({
+      message: "Fetching parent bookings from database",
+      parentId,
+    });
     const bookings = await pool.query(
       `
       SELECT 
@@ -36,8 +46,20 @@ const getBookings = async (req, res) => {
       [parentId],
     );
 
+    logger.info({
+      message: "Parent bookings fetched successfully",
+      parentId,
+      totalBookings: bookings.rowCount,
+    });
+
     res.json({ bookings: bookings.rows });
   } catch (err) {
+    logger.error({
+      message: "Failed to fetch parent bookings",
+      parentId: req.user?.id,
+      error: err.message,
+      stack: err.stack,
+    });
     res.status(500).json({ error: err.message });
   }
 };
@@ -46,7 +68,19 @@ const getBookingDetails = async (req, res) => {
   try {
     const parentId = req.user.id;
     const { bookingId } = req.params;
+    logger.info({
+      message: "Booking details request received",
+      parentId,
+      bookingId,
+      route: req.originalUrl,
+      method: req.method,
+    });
 
+    logger.info({
+      message: "Fetching booking details from database",
+      parentId,
+      bookingId,
+    });
     const booking = await pool.query(
       `
       SELECT 
@@ -66,10 +100,29 @@ const getBookingDetails = async (req, res) => {
       [bookingId, parentId],
     );
 
-    if (!booking.rowCount)
+    if (!booking.rowCount) {
+      logger.warn({
+        message: "Booking not found",
+        parentId,
+        bookingId,
+      });
       return res.status(404).json({ message: "Booking not found" });
+    }
+    logger.info({
+      message: "Booking details fetched successfully",
+      parentId,
+      bookingId,
+      bookingStatus: booking.rows[0].status,
+    });
     res.json({ booking: booking.rows[0] });
   } catch (err) {
+    logger.error({
+      message: "Failed to fetch booking details",
+      parentId: req.user?.id,
+      bookingId: req.params.bookingId,
+      error: err.message,
+      stack: err.stack,
+    });
     res.status(500).json({ error: err.message });
   }
 };
@@ -78,6 +131,20 @@ const cancelBooking = async (req, res) => {
   try {
     const parentId = req.user.id;
     const { bookingId } = req.params;
+
+    logger.info({
+      message: "Booking cancellation request received",
+      parentId,
+      bookingId,
+      route: req.originalUrl,
+      method: req.method,
+    });
+
+    logger.info({
+      message: "Cancelling booking",
+      parentId,
+      bookingId,
+    });
 
     const ok = await pool.query(
       `
@@ -90,10 +157,28 @@ const cancelBooking = async (req, res) => {
       [parentId, bookingId],
     );
 
-    if (!ok.rowCount)
+    if (!ok.rowCount) {
+      logger.warn({
+        message: "Booking not found",
+        parentId,
+        bookingId,
+      });
       return res.status(404).json({ message: "Booking not found" });
+    }
+    logger.info({
+      message: "Booking cancelled successfully",
+      parentId,
+      bookingId,
+    });
     res.json({ message: "Booking cancelled" });
   } catch (err) {
+    logger.error({
+      message: "Failed to cancel booking",
+      parentId: req.user?.id,
+      bookingId: req.params.bookingId,
+      error: err.message,
+      stack: err.stack,
+    });
     res.status(500).json({ error: err.message });
   }
 };
@@ -103,7 +188,31 @@ const reBooking = async (req, res) => {
     const parentId = req.user.id;
     const { bookingId } = req.params;
 
+
+    logger.info({
+      message: "Rebooking request received",
+      parentId,
+      bookingId,
+      route: req.originalUrl,
+      method: req.method,
+    });
+
     await pool.query("BEGIN");
+
+    logger.info({
+      message: "Fetching existing booking",
+      parentId,
+      bookingId,
+    });
+
+    await pool.query("BEGIN");
+
+    logger.info({
+      message: "Fetching existing booking",
+      parentId,
+      bookingId,
+    });
+
 
     const old = await pool.query(
       `
@@ -117,9 +226,19 @@ const reBooking = async (req, res) => {
 
     if (!old.rowCount) {
       await pool.query("ROLLBACK");
+      logger.warn({
+        message: "Booking not found",
+        parentId,
+        bookingId,
+      });
+
       return res.status(404).json({ message: "Booking not found" });
     }
-
+    logger.info({
+      message: "Updating booking status to ACTIVE",
+      parentId,
+      bookingId,
+    });
     const n = await pool.query(
       `
       UPDATE bookings b
@@ -130,10 +249,22 @@ const reBooking = async (req, res) => {
     `,
       [parentId, bookingId],
     );
+    logger.info({
+      message: "Booking reactivated successfully",
+      parentId,
+      bookingId: n.rows[0].id,
+    });
 
     res.status(201).json({ message: "Rebooked", booking: n.rows[0] });
   } catch (err) {
     await pool.query("ROLLBACK");
+    logger.error({
+      message: "Failed to rebook booking",
+      parentId: req.user?.id,
+      bookingId: req.params.bookingId,
+      error: err.message,
+      stack: err.stack,
+    });
     res.status(500).json({ error: err.message });
   }
 };

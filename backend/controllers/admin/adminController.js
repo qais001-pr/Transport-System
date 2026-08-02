@@ -248,17 +248,48 @@ isComplaintSolved = async (req, res) => {
   try {
     const { id } = req.params;
     const { is_solved } = req.body;
+
+    logger.info({
+      message: "Complaint status update request received",
+      complaintId: id,
+      isSolved: is_solved,
+      route: req.originalUrl,
+      method: req.method,
+    });
+
+    logger.info({
+      message: "Updating complaint status in database",
+      complaintId: id,
+    });
+
+
     const updateQuery =
       "UPDATE complaints SET is_solved = $1 WHERE id = $2 RETURNING id, is_solved";
     const result = await pool.query(updateQuery, [is_solved, id]);
     if (result.rows.length === 0) {
+      logger.warn({
+        message: "Complaint not found",
+        complaintId: id,
+      });
+
       return res.status(404).json({ message: "Complaint not found" });
     }
+    logger.info({
+      message: "Complaint status updated successfully",
+      complaintId: result.rows[0].id,
+      isSolved: result.rows[0].is_solved,
+    });
     return res.status(200).json({
       message: "Complaint status updated successfully",
       complaint: result.rows[0],
     });
   } catch (error) {
+    logger.error({
+      message: "Failed to update complaint status",
+      complaintId: req.params.id,
+      error: error.message,
+      stack: error.stack,
+    });
     return res
       .status(500)
       .json({ message: "Server Error", error: error.message });
@@ -267,6 +298,15 @@ isComplaintSolved = async (req, res) => {
 
 const allUsers = async (req, res) => {
   try {
+    logger.info({
+      message: "Fetch all users request received",
+      route: req.originalUrl,
+      method: req.method,
+    });
+
+    logger.info({
+      message: "Fetching users from database",
+    });
     const result = await pool.query(`
       SELECT 
         U.id,
@@ -282,12 +322,20 @@ const allUsers = async (req, res) => {
       GROUP BY U.id
       ORDER BY U.id DESC
     `);
-
+    logger.info({
+      message: "Users fetched successfully",
+      totalUsers: result.rowCount,
+    });
     return res.status(200).json({
       message: "Users fetched successfully",
       data: result.rows,
     });
   } catch (error) {
+    logger.error({
+      message: "Failed to fetch users",
+      error: error.message,
+      stack: error.stack,
+    });
     return res.status(500).json({ message: "Server Error", error: error.message });
   }
 };
@@ -296,7 +344,17 @@ const allUsers = async (req, res) => {
 const viewUserDetails = async (req, res) => {
   try {
     const userId = req.params.userId;
+    logger.info({
+      message: "User details request received",
+      userId,
+      route: req.originalUrl,
+      method: req.method,
+    });
 
+    logger.info({
+      message: "Fetching user details from database",
+      userId,
+    });
     const result = await pool.query(
       `
       SELECT 
@@ -341,14 +399,30 @@ const viewUserDetails = async (req, res) => {
     );
 
     if (result.rows.length === 0) {
+      logger.warn({
+        message: "User not found",
+        userId,
+      });
       return res.status(404).json({ message: "User not found" });
     }
+    logger.info({
+      message: "User details fetched successfully",
+      userId,
+      role: result.rows[0].role,
+      isVerified: result.rows[0].is_verified,
+    });
 
     return res.status(200).json({
       message: "User details fetched successfully",
       data: result.rows[0],
     });
   } catch (error) {
+    logger.error({
+      message: "Failed to fetch user details",
+      userId: req.params.userId,
+      error: error.message,
+      stack: error.stack,
+    });
     console.error("Error fetching user details:", error);
     return res.status(500).json({
       message: "Server Error",
@@ -362,18 +436,44 @@ blockUser = async (req, res) => {
   try {
     const { id } = req.params;
     const { is_blocked } = req.body;
+    logger.info({
+      message: "User block/unblock request received",
+      userId: id,
+      isBlocked: is_blocked,
+      route: req.originalUrl,
+      method: req.method,
+    });
+    logger.info({
+      message: "Updating user block status",
+      userId: id,
+    });
     const result = await pool.query(
       "UPDATE users SET is_blocked = $1 WHERE id = $2 RETURNING id, is_blocked",
       [is_blocked, id]
     );
     if (result.rows.length === 0) {
+      logger.warn({
+        message: "User not found",
+        userId: id,
+      });
       return res.status(404).json({ message: "User not found" });
     }
+    logger.info({
+      message: "User block status updated successfully",
+      userId: result.rows[0].id,
+      isBlocked: result.rows[0].is_blocked,
+    });
     return res.status(200).json({
       message: "User blocked successfully",
       data: result.rows[0],
     });
   } catch (error) {
+    logger.error({
+      message: "Failed to update user block status",
+      userId: req.params.id,
+      error: error.message,
+      stack: error.stack,
+    });
     return res
       .status(500)
       .json({ message: "Server Error", error: error.message });
@@ -383,18 +483,46 @@ blockUser = async (req, res) => {
 deleteUser = async (req, res) => {
   try {
     const { id } = req.params;
+
+    logger.info({
+      message: "User deletion request received",
+      userId: id,
+      route: req.originalUrl,
+      method: req.method,
+    });
+
+    logger.info({
+      message: "Deleting user from database",
+      userId: id,
+    });
+
+
     const result = await pool.query(
       "DELETE FROM users WHERE id = $1 RETURNING id",
       [id]
     );
     if (result.rows.length === 0) {
+      logger.warn({
+        message: "User not found",
+        userId: id,
+      });
       return res.status(404).json({ message: "User not found" });
     }
+    logger.info({
+      message: "User deleted successfully",
+      userId: result.rows[0].id,
+    });
     return res.status(200).json({
       message: "User deleted successfully",
       data: result.rows[0],
     });
   } catch (error) {
+    logger.error({
+      message: "Failed to delete user",
+      userId: req.params.id,
+      error: error.message,
+      stack: error.stack,
+    });
     return res
       .status(500)
       .json({ message: "Server Error", error: error.message });
@@ -403,6 +531,16 @@ deleteUser = async (req, res) => {
 
 const allDrivers = async (req, res) => {
   try {
+    logger.info({
+      message: "Fetch all drivers request received",
+      route: req.originalUrl,
+      method: req.method,
+    });
+
+    logger.info({
+      message: "Fetching drivers from database",
+    });
+
     const result = await pool.query(`
       SELECT 
         U.id AS driver_id,
@@ -429,12 +567,20 @@ const allDrivers = async (req, res) => {
       WHERE U.role = 'DRIVER'
       ORDER BY U.id DESC
     `);
-
+    logger.info({
+      message: "Drivers fetched successfully",
+      totalDrivers: result.rowCount,
+    });
     return res.status(200).json({
       message: "Drivers fetched successfully",
       data: result.rows,
     });
   } catch (error) {
+    logger.error({
+      message: "Failed to fetch drivers",
+      error: error.message,
+      stack: error.stack,
+    });
     console.error("Error fetching drivers:", error);
     return res.status(500).json({ message: "Server Error", error: error.message });
   }
@@ -444,7 +590,17 @@ const allDrivers = async (req, res) => {
 const showDriverDetails = async (req, res) => {
   try {
     const driverId = req.params.driverId;
+    logger.info({
+      message: "Driver details request received",
+      driverId,
+      route: req.originalUrl,
+      method: req.method,
+    });
 
+    logger.info({
+      message: "Fetching driver details from database",
+      driverId,
+    });
     const result = await pool.query(`
       SELECT 
         U.id AS driver_id,
@@ -483,14 +639,30 @@ const showDriverDetails = async (req, res) => {
     `, [driverId]);
 
     if (result.rows.length === 0) {
+      logger.warn({
+        message: "Driver not found",
+        driverId,
+      });
       return res.status(404).json({ message: "Driver not found" });
     }
-
+    logger.info({
+      message: "Driver details fetched successfully",
+      driverId,
+      isVerified: result.rows[0].is_verified,
+      totalVans: result.rows[0].vans?.length || 0,
+      totalDocuments: result.rows[0].driver_documents?.length || 0,
+    });
     return res.status(200).json({
       message: "Driver details fetched successfully",
       data: result.rows[0],
     });
   } catch (error) {
+    logger.error({
+      message: "Failed to fetch driver details",
+      driverId: req.params.driverId,
+      error: error.message,
+      stack: error.stack,
+    });
     console.error(error);
     return res.status(500).json({
       message: "Server Error",
@@ -504,24 +676,53 @@ const updateStatusDriver = async (req, res) => {
   try {
     const driverId = req.params.id;
     const { is_verified, availability_status } = req.body;
+    logger.info({
+      message: "Driver status update request received",
+      driverId,
+      isVerified: is_verified,
+      availabilityStatus: availability_status,
+      route: req.originalUrl,
+      method: req.method,
+    });
 
+    logger.info({
+      message: "Checking driver existence",
+      driverId,
+    });
     const driverCheck = await pool.query(
       "SELECT is_verified FROM users WHERE id = $1 AND role = 'DRIVER'",
       [driverId]
     );
 
     if (driverCheck.rows.length === 0) {
+      logger.warn({
+        message: "Driver not found",
+        driverId,
+      });
       return res.status(404).json({ message: "Driver not found" });
     }
 
     if (driverCheck.rows[0].is_verified && availability_status === "active") {
+      logger.warn({
+        message: "Driver already verified and active",
+        driverId,
+      });
       return res.status(400).json({ message: "Driver already verified and active" });
     }
-
+    logger.info({
+      message: "Updating driver verification status",
+      driverId,
+      isVerified: is_verified,
+    });
     const update = await pool.query(
       "UPDATE users SET is_verified = $1 WHERE id = $2 RETURNING id, is_verified",
       [is_verified, driverId]
     );
+    logger.info({
+      message: "Driver verification status updated successfully",
+      driverId: update.rows[0].id,
+      isVerified: update.rows[0].is_verified,
+    });
 
     return res.status(200).json({
       message: "Driver verification status updated successfully",
@@ -529,6 +730,12 @@ const updateStatusDriver = async (req, res) => {
     });
   } catch (error) {
     console.error(error);
+    logger.error({
+      message: "Failed to update driver verification status",
+      driverId: req.params.id,
+      error: error.message,
+      stack: error.stack,
+    });
     return res.status(500).json({ message: "Server Error", error: error.message });
   }
 };
@@ -538,13 +745,31 @@ const topRatedDrivers = async (req, res) => {
   try {
     const { minRating = 4, limit, page = 1 } = req.query;
     const offset = (page - 1) * (limit || 0);
+    logger.info({
+      message: "Top-rated drivers request received",
+      minRating: Number(minRating),
+      limit: limit ? Number(limit) : null,
+      page: Number(page),
+      offset,
+      route: req.originalUrl,
+      method: req.method,
+    });
 
     if (minRating < 4 || offset < 0) {
+      logger.warn({
+        message: "Invalid top-rated drivers request parameters",
+        minRating: Number(minRating),
+        page: Number(page),
+        offset,
+      });
       return res.status(400).json({
         message: "Minimum rating should be at least 4 and offset should be non-negative",
       });
     }
-
+    logger.info({
+      message: "Fetching top-rated drivers from database",
+      minRating: Number(minRating),
+    });
     let values = [minRating];
     let query = `
       SELECT 
@@ -573,7 +798,11 @@ const topRatedDrivers = async (req, res) => {
     }
 
     const result = await pool.query(query, values);
-
+    logger.info({
+      message: "Top-rated drivers fetched successfully",
+      minRating: Number(minRating),
+      totalDrivers: result.rowCount,
+    });
     return res.status(200).json({
       message: "Top-rated drivers fetched successfully",
       data: result.rows,
@@ -581,6 +810,11 @@ const topRatedDrivers = async (req, res) => {
     });
   } catch (error) {
     console.error(error);
+    logger.error({
+      message: "Failed to fetch top-rated drivers",
+      error: error.message,
+      stack: error.stack,
+    });
     return res.status(500).json({ message: "Server Error" });
   }
 };
@@ -588,6 +822,15 @@ const topRatedDrivers = async (req, res) => {
 
 const allDriversWithDocuments = async (req, res) => {
   try {
+    logger.info({
+      message: "Drivers with documents request received",
+      route: req.originalUrl,
+      method: req.method,
+    });
+
+    logger.info({
+      message: "Fetching drivers with documents from database",
+    });
     const result = await pool.query(`
       SELECT 
         U.id AS driver_id,
@@ -611,12 +854,20 @@ const allDriversWithDocuments = async (req, res) => {
       WHERE U.role = 'DRIVER'
       ORDER BY U.id DESC
     `);
-
+    logger.info({
+      message: "Drivers with documents fetched successfully",
+      totalDrivers: result.rowCount,
+    });
     return res.status(200).json({
       message: "Drivers with documents fetched successfully",
       data: result.rows,
     });
   } catch (error) {
+    logger.error({
+      message: "Failed to fetch drivers with documents",
+      error: error.message,
+      stack: error.stack,
+    });
     console.error(error);
     return res.status(500).json({ message: "Server Error", error: error.message });
   }
@@ -627,6 +878,18 @@ const driversDocumentsDetails = async (req, res) => {
   try {
     const driverId = req.params.driverId;
 
+    logger.info({
+      message: "Driver documents request received",
+      driverId,
+      route: req.originalUrl,
+      method: req.method,
+    });
+
+    logger.info({
+      message: "Fetching driver documents from database",
+      driverId,
+    });
+
     const result = await pool.query(`
       SELECT *
       FROM driver_documents
@@ -635,14 +898,28 @@ const driversDocumentsDetails = async (req, res) => {
     `, [driverId]);
 
     if (result.rows.length === 0) {
+      logger.warn({
+        message: "Driver documents not found",
+        driverId,
+      });
       return res.status(404).json({ message: "Driver documents not found" });
     }
-
+    logger.info({
+      message: "Driver documents fetched successfully",
+      driverId,
+      totalDocuments: result.rowCount,
+    });
     return res.status(200).json({
       message: "Driver documents fetched successfully",
       data: result.rows,
     });
   } catch (error) {
+    logger.error({
+      message: "Failed to fetch driver documents",
+      driverId: req.params.driverId,
+      error: error.message,
+      stack: error.stack,
+    });
     console.error(error);
     return res.status(500).json({ message: "Server Error", error: error.message });
   }
@@ -650,11 +927,25 @@ const driversDocumentsDetails = async (req, res) => {
 
 const verifyDriversDocuments = async (req, res) => {
   try {
-    const { id } = req.params; // document ID
+    const { id } = req.params;
     const { driver_license, id_card, vehicle_registration, vehicle_photo, number_plate } = req.body;
+    logger.info({
+      message: "Driver document verification request received",
+      documentId: id,
+      route: req.originalUrl,
+      method: req.method,
+    });
 
+    logger.info({
+      message: "Checking driver document existence",
+      documentId: id,
+    });
     const doc = await pool.query("SELECT * FROM driver_documents WHERE id = $1", [id]);
     if (doc.rowCount === 0) {
+      logger.warn({
+        message: "Driver documents not found",
+        documentId: id,
+      });
       return res.status(404).json({ message: "Driver documents not found" });
     }
 
@@ -679,13 +970,22 @@ const verifyDriversDocuments = async (req, res) => {
       number_plate,
       id,
     ]);
-
+    logger.info({
+      message: "Driver documents verified successfully",
+      documentId: id,
+      isVerified: updatedResult.rows[0].is_verified,
+    });
     return res.status(200).json({
       message: "Driver documents verified successfully",
       data: updatedResult.rows[0],
     });
   } catch (error) {
-    console.error(error);
+    logger.error({
+      message: "Failed to verify driver documents",
+      documentId: req.params.id,
+      error: error.message,
+      stack: error.stack,
+    });
     return res.status(500).json({ message: "Server Error", error: error.message });
   }
 };
@@ -693,6 +993,15 @@ const verifyDriversDocuments = async (req, res) => {
 
 const allRoutesWithDriversAndStops = async (req, res) => {
   try {
+    logger.info({
+      message: "Routes with drivers and stops request received",
+      route: req.originalUrl,
+      method: req.method,
+    });
+
+    logger.info({
+      message: "Fetching routes with drivers and stops from database",
+    });
     const result = await pool.query(`
       SELECT 
         R.*,
@@ -719,13 +1028,20 @@ const allRoutesWithDriversAndStops = async (req, res) => {
       GROUP BY R.id, U.id, V.id
       ORDER BY R.id DESC
     `);
-
+    logger.info({
+      message: "Routes fetched successfully",
+      totalRoutes: result.rowCount,
+    });
     return res.status(200).json({
       message: "Routes fetched successfully",
       data: result.rows,
     });
   } catch (error) {
-    console.error(error);
+    logger.error({
+      message: "Failed to fetch routes with drivers and stops",
+      error: error.message,
+      stack: error.stack,
+    });
     return res.status(500).json({ message: "Server Error", error: error.message });
   }
 };
@@ -734,13 +1050,30 @@ const allRoutesWithDriversAndStops = async (req, res) => {
 const routeDetails = async (req, res) => {
   try {
     const routeId = req.params.routeId;
+    logger.info({
+      message: "Route details request received",
+      routeId,
+      route: req.originalUrl,
+      method: req.method,
+    });
 
+    logger.info({
+      message: "Checking route existence",
+      routeId,
+    });
     // Check if route exists
     const checkRoute = await pool.query("SELECT * FROM routes WHERE id = $1", [routeId]);
     if (checkRoute.rowCount === 0) {
+      logger.warn({
+        message: "Route not found",
+        routeId,
+      });
       return res.status(404).json({ message: "Route not found" });
     }
-
+    logger.info({
+      message: "Fetching route details from database",
+      routeId,
+    });
     const result = await pool.query(`
       SELECT 
         R.*,
@@ -768,13 +1101,24 @@ const routeDetails = async (req, res) => {
       GROUP BY R.id, U.id, V.id
     `, [routeId]);
 
+    logger.info({
+      message: "Route details fetched successfully",
+      routeId,
+      totalChildren: result.rows[0]?.children?.length || 0,
+    });
     return res.status(200).json({
       message: "Route fetched successfully",
       data: result.rows[0],
     });
 
   } catch (error) {
-    console.error(error);
+    logger.error({
+      message: "Failed to fetch route details",
+      routeId: req.params.routeId,
+      error: error.message,
+      stack: error.stack,
+    });
+
     return res.status(500).json({ message: "Server Error", error: error.message });
   }
 };
@@ -784,23 +1128,51 @@ const deleteRoute = async (req, res) => {
   try {
     const routeId = req.params.routeId;
 
+    logger.info({
+      message: "Route deletion request received",
+      routeId,
+      route: req.originalUrl,
+      method: req.method,
+    });
+
+    logger.info({
+      message: "Checking route existence",
+      routeId,
+    });
+
     const checkRoute = await pool.query("SELECT * FROM routes WHERE id = $1", [routeId]);
     if (checkRoute.rowCount === 0) {
+      logger.warn({
+        message: "Route not found",
+        routeId,
+      });
       return res.status(404).json({ message: "Route not found" });
     }
+    logger.info({
+      message: "Deleting route from database",
+      routeId,
+    });
 
     const result = await pool.query(
       "DELETE FROM routes WHERE id = $1 RETURNING *",
       [routeId]
     );
-
+    logger.info({
+      message: "Route deleted successfully",
+      routeId: result.rows[0].id,
+    });
     return res.status(200).json({
       message: "Route deleted successfully",
       data: result.rows[0],
     });
 
   } catch (error) {
-    console.error(error);
+    logger.error({
+      message: "Failed to delete route",
+      routeId: req.params.routeId,
+      error: error.message,
+      stack: error.stack,
+    });
     return res.status(500).json({ message: "Server Error", error: error.message });
   }
 };
@@ -808,25 +1180,58 @@ const deleteRoute = async (req, res) => {
 
 const addSchools = async (req, res) => {
   try {
+
     const { name, address, start_time, end_time } = req.body;
+
+    logger.info({
+      message: "Add school request received",
+      schoolName: name,
+      address,
+      route: req.originalUrl,
+      method: req.method,
+    });
+
+    logger.info({
+      message: "Checking if school already exists",
+      address,
+    });
 
     const existing = await pool.query("SELECT id FROM schools WHERE address = $1", [address]);
     if (existing.rowCount > 0) {
+      logger.warn({
+        message: "School already exists",
+        schoolName: name,
+        address,
+      });
       return res.status(400).json({ message: "School already added" });
     }
-
+    logger.info({
+      message: "Adding new school to database",
+      schoolName: name,
+      address,
+    });
     const result = await pool.query(
       "INSERT INTO schools (name, address, start_time, end_time) VALUES ($1, $2, $3, $4) RETURNING *",
       [name, address, start_time, end_time]
     );
-
+    logger.info({
+      message: "School added successfully",
+      schoolId: result.rows[0].id,
+      schoolName: result.rows[0].name,
+    });
     return res.status(201).json({
       message: "School added successfully",
       data: result.rows[0],
     });
 
   } catch (error) {
-    console.error(error);
+    logger.error({
+      message: "Failed to add school",
+      schoolName: req.body.name,
+      address: req.body.address,
+      error: error.message,
+      stack: error.stack,
+    });
     return res.status(500).json({ message: "Server Error", error: error.message });
   }
 };
@@ -834,14 +1239,40 @@ const addSchools = async (req, res) => {
 getSchoolData = async (req, res) => {
   try {
     const { id } = req.params;
+    logger.info({
+      message: "School details request received",
+      schoolId: id,
+      route: req.originalUrl,
+      method: req.method,
+    });
+
+    logger.info({
+      message: "Fetching school details from database",
+      schoolId: id,
+    });
     const result = await pool.query("SELECT * FROM schools where id = $1", [
       id,
     ]);
     if (result.rowCount == 0) {
+      logger.warn({
+        message: "School not found",
+        schoolId: id,
+      });
       return res.status(404).json({ message: "School not found" });
     }
+    logger.info({
+      message: "School details fetched successfully",
+      schoolId: result.rows[0].id,
+      schoolName: result.rows[0].name,
+    });
     return res.status(200).json({ data: result.rows[0] });
   } catch (error) {
+    logger.error({
+      message: "Failed to fetch school details",
+      schoolId: req.params.id,
+      error: error.message,
+      stack: error.stack,
+    });
     return res
       .status(500)
       .json({ message: "Server Error", error: error.message });
@@ -852,15 +1283,44 @@ updateSchoolData = async (req, res) => {
   try {
     const { id } = req.params;
     const { name, address, start_time, end_time } = req.body;
+    logger.info({
+      message: "School update request received",
+      schoolId: id,
+      schoolName: name,
+      address,
+      route: req.originalUrl,
+      method: req.method,
+    });
+
+    logger.info({
+      message: "Updating school details",
+      schoolId: id,
+    });
     const result = await pool.query(
       "UPDATE schools SET name = $1, address = $2, start_time = $3, end_time = $4 WHERE id = $5 RETURNING *",
       [name, address, start_time, end_time, id]
     );
     if (result.rowCount == 0) {
+      logger.warn({
+        message: "School not found",
+        schoolId: id,
+      });
       return res.status(404).json({ message: "School not found" });
     }
+    logger.info({
+      message: "School updated successfully",
+      schoolId: result.rows[0].id,
+      schoolName: result.rows[0].name,
+    });
     return res.status(200).json({ data: result.rows[0] });
   } catch (error) {
+    logger.error({
+      message: "Failed to update school",
+      schoolId: req.params.id,
+      schoolName: req.body.name,
+      error: error.message,
+      stack: error.stack,
+    });
     return res
       .status(500)
       .json({ message: "Server Error", error: error.message });
@@ -870,12 +1330,38 @@ updateSchoolData = async (req, res) => {
 deleteSchool = async (req, res) => {
   try {
     const { id } = req.params;
+    logger.info({
+      message: "School deletion request received",
+      schoolId: id,
+      route: req.originalUrl,
+      method: req.method,
+    });
+
+    logger.info({
+      message: "Deleting school from database",
+      schoolId: id,
+    });
+
     const result = await pool.query("DELETE FROM schools WHERE id = $1", [id]);
     if (result.rowCount == 0) {
+      logger.warn({
+        message: "School not found",
+        schoolId: id,
+      });
       return res.status(404).json({ message: "School not found" });
     }
+    logger.info({
+      message: "School deleted successfully",
+      schoolId: id,
+    });
     return res.status(200).json({ message: "School deleted successfully" });
   } catch (error) {
+    logger.error({
+      message: "Failed to delete school",
+      schoolId: req.params.id,
+      error: error.message,
+      stack: error.stack,
+    });
     return res
       .status(500)
       .json({ message: "Server Error", error: error.message });

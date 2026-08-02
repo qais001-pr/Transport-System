@@ -3,7 +3,17 @@ const { pool } = require("../../utils/dbConnection");
 getPaymentHistory = async (req, res) => {
   try {
     const parent_id = req.user.id;
+    logger.info({
+      message: "Payment history request received",
+      parentId: parent_id,
+      route: req.originalUrl,
+      method: req.method,
+    });
 
+    logger.info({
+      message: "Fetching payment history from database",
+      parentId: parent_id,
+    });
     const payments = await pool.query(
       `
       SELECT 
@@ -28,9 +38,20 @@ getPaymentHistory = async (req, res) => {
     `,
       [parent_id],
     );
-
+    logger.info({
+      message: "Payment history fetched successfully",
+      parentId: parent_id,
+      totalPayments: payments.rowCount,
+    });
     res.status(200).json({ payments: payments.rows });
   } catch (error) {
+    logger.error({
+      message: "Failed to fetch payment history",
+      parentId: req.user?.id,
+      error: error.message,
+      stack: error.stack,
+    });
+
     res.status(500).json({ message: "Server Error", error: error.message });
   }
 };
@@ -43,9 +64,27 @@ payNow = async (req, res) => {
 
     const proof_photo = req?.files?.proof_photo?.[0]?.path;
 
+    logger.info({
+      message: "Payment request received",
+      bookingId: booking_id,
+      parentId: parent_id,
+      route: req.originalUrl,
+      method: req.method,
+    });
+
     if (!proof_photo) {
+      logger.warn({
+        message: "Payment proof not provided",
+        bookingId: booking_id,
+        parentId: parent_id,
+      });
       return res.status(400).json({ message: "Payment proof required" });
     }
+    logger.info({
+      message: "Verifying pending payment record",
+      bookingId: booking_id,
+      parentId: parent_id,
+    });
 
     const isBooking = await pool.query(
       `
@@ -55,10 +94,19 @@ payNow = async (req, res) => {
     );
 
     if (!isBooking.rows.length) {
+      logger.warn({
+        message: "Pending payment record not found",
+        bookingId: booking_id,
+        parentId: parent_id,
+      });
       await pool.query("ROLLBACK");
       return res.status(400).json({ message: "Booking not exists" });
     }
-
+    logger.info({
+      message: "Updating payment status",
+      bookingId: booking_id,
+      parentId: parent_id,
+    });
     await pool.query(
       `
       UPDATE cash_payments
@@ -75,15 +123,24 @@ payNow = async (req, res) => {
     );
 
     await pool.query("COMMIT");
-
+    logger.info({
+      message: "Payment completed successfully",
+      bookingId: booking_id,
+      parentId: parent_id,
+    });
     return res.status(200).json({ message: "Payment successfully" });
   } catch (error) {
+    logger.error({
+      message: "Payment processing failed",
+      bookingId: req.params.booking_id,
+      parentId: req.user?.id,
+      error: error.message,
+      stack: error.stack,
+    });
     await pool.query("ROLLBACK");
     return res
       .status(500)
       .json({ message: "Server Error", error: error.message });
-  } finally {
-    await pool.query("END");
   }
 };
 
