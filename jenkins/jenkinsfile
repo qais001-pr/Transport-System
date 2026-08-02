@@ -5,40 +5,42 @@ pipeline {
         }
     }
 
+    environment {
+        IMAGE_TAG = "${env.TAG_NAME}"
+        DEPLOYMENT_REPO = "https://github.com/qais001-pr/School-Transport-System-Deployment.git"
+        DOCKERHUB_USERNAME = "qais001"
+        BACKEND_IMAGE = "school-transport-system"
+        FRONTEND_IMAGE = "school-transport-web"
+    }
+
     stages {
-        stage('Verify Tools') {
-                    steps {
-                        container('git') {
-                            sh 'git --version'
-                        }
 
-                        container('helm') {
-                            sh 'helm version'
-                        }
-
-                        container('argocd') {
-                            sh 'argocd version --client'
-                        }
-
-                        container('kaniko') {
-                            sh '/kaniko/executor version'
-                        }
+        stage('Verify Tag') {
+            steps {
+                script {
+                    if (!env.TAG_NAME?.trim()) {
+                        error("This pipeline must be triggered by a Git tag.")
                     }
+
+                    echo "Building release: ${env.TAG_NAME}"
                 }
-        stage('Build Backend Docker Image') {
+            }
+        }
+        stage('Build & Push Backend Image') {
             steps {
                 container('kaniko') {
                     sh '''
                     /kaniko/executor \
                       --context="$WORKSPACE/backend" \
                       --dockerfile="$WORKSPACE/backend/Dockerfile" \
-                      --no-push
+                      --destination=${DOCKERHUB_USERNAME}/${BACKEND_IMAGE}:${IMAGE_TAG} \
+                      --destination=${DOCKERHUB_USERNAME}/${BACKEND_IMAGE}:latest
                     '''
                 }
             }
         }
 
-        stage('Build Frontend Docker Image') {
+        stage('Build & Push Frontend Image') {
             steps {
                 container('kaniko') {
                     withCredentials([
@@ -53,7 +55,54 @@ pipeline {
                           --build-arg VITE_API_URL=$VITE_API_URL \
                           --build-arg VITE_SOCKET_URL=$VITE_SOCKET_URL \
                           --build-arg VITE_VAPID_PUBLIC_KEY=$VITE_VAPID_PUBLIC_KEY \
-                          --no-push
+                          --destination=${DOCKERHUB_USERNAME}/${FRONTEND_IMAGE}:${IMAGE_TAG} \
+                          --destination=${DOCKERHUB_USERNAME}/${FRONTEND_IMAGE}:latest
+                        '''
+                    }
+                }
+            }
+        }
+
+        stage('Update Helm Chart') {
+            steps {
+                container('helm') {
+                    withCredentials([
+                        usernamePassword(
+                            credentialsId: 'github-credentials-token',
+                            usernameVariable: 'GITHUB_USER',
+                            passwordVariable: 'GITHUB_TOKEN'
+                        )
+                    ]) {
+                        sh '''
+                        if [ ! -f yq ]; then
+                          wget -q https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O yq
+                          chmod +x yq
+                        fi
+                    
+                        git clone https://${GITHUB_USER}:${GITHUB_TOKEN}@github.com/qais001-pr/School-Transport-System-Deployment.git deployment
+                        cd deployment/helm/
+
+                        ../../yq -i '.version = strenv(IMAGE_TAG)' Chart.yaml
+                        ../../yq -i '.client.image.tag = strenv(IMAGE_TAG)' values.yaml
+                        ../../yq -i '.server.image.tag = strenv(IMAGE_TAG)' values.yaml
+
+                        git config user.name "Muhammad Qais"
+                        git config user.email "qaismuhammad742@gmail.com"
+
+                        git add .
+
+                        git diff --cached --quiet || git commit -m "Release ${IMAGE_TAG}"
+
+                        git push https://${GITHUB_USER}:${GITHUB_TOKEN}@github.com/qais001-pr/School-Transport-System-Deployment.git main
+
+                        echo "${GITHUB_TOKEN}" | helm registry login ghcr.io -u "${GITHUB_TOKEN}" --password-stdin
+
+                        helm lint .
+
+                        helm package .
+
+                        helm push *.tgz "oci://ghcr.io/qais001-pr"
+
                         '''
                     }
                 }
@@ -64,11 +113,15 @@ pipeline {
 
     post {
         success {
-            echo 'Pipeline succeeded'
+            echo "Release ${IMAGE_TAG} completed successfully."
         }
 
         failure {
-            echo 'Pipeline failed'
+            echo "Release ${IMAGE_TAG} failed."
+        }
+
+        always {
+            cleanWs()
         }
     }
 }
