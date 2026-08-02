@@ -4,9 +4,12 @@ pipeline {
             inheritFrom 'kaniko-agent'
         }
     }
+    parameters {
+        string(name: 'TAG_NAME', defaultValue: '', description: 'Release Tag')
+    }
 
     environment {
-        IMAGE_TAG = "${env.TAG_NAME}"
+        IMAGE_TAG = "${params.TAG_NAME}"
         DEPLOYMENT_REPO = "https://github.com/qais001-pr/School-Transport-System-Deployment.git"
         DOCKERHUB_USERNAME = "qais001"
         BACKEND_IMAGE = "school-transport-system"
