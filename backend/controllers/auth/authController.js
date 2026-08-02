@@ -7,7 +7,7 @@ const {
   sendPasswordResetEmail,
 } = require("../../common/sendEmail");
 const { uploadFile } = require("../../middlewares/helper");
-
+const logger = require('../../middlewares/loki');
 const registerUser = async (req, res) => {
   try {
     const { full_name, email, phone, password, role, branch_id, schoolName } =
@@ -351,8 +351,21 @@ const loginUser = async (req, res) => {
 const verifyOtp = async (req, res) => {
   const { email, phone, otp } = req.body;
 
+  logger.info({
+    message: "OTP verification request received",
+    email,
+    phone,
+    route: req.originalUrl,
+    method: req.method,
+  });
+
   try {
     await pool.query("BEGIN");
+    logger.info({
+      message: "Verifying OTP for user",
+      email,
+    });
+
     const r = await pool.query(
       `
     SELECT u.id FROM users u
@@ -363,19 +376,49 @@ const verifyOtp = async (req, res) => {
     );
 
     if (!r.rowCount) {
+      logger.warn({
+        message: "OTP verification failed - Invalid or expired OTP",
+        email,
+      });
       await pool.query("ROLLBACK");
       return res.status(400).json({ message: "Invalid or expired OTP" });
     }
+    const userId = r.rows[0].id;
+
+    logger.info({
+      message: "OTP validated successfully",
+      userId,
+      email,
+    });
     await pool.query("UPDATE users SET is_verified=true WHERE id=$1", [
       r.rows[0].id,
     ]);
+    logger.info({
+      message: "User account marked as verified",
+      userId,
+    });
     await pool.query(
       "UPDATE users_otp SET status='VERIFIED', otp='' WHERE user_id=$1",
       [r.rows[0].id],
     );
+    logger.info({
+      message: "OTP record updated",
+      userId,
+    });
     await pool.query("COMMIT");
+    logger.info({
+      message: "OTP verification completed successfully",
+      userId,
+      email,
+    });
     return res.status(200).json({ message: "OTP verified" });
   } catch (error) {
+    logger.error({
+      message: "OTP verification failed due to server error",
+      email,
+      error: error.message,
+      stack: error.stack,
+    });
     await pool.query("ROLLBACK");
     return res.status(500).json({ error: error.message });
   }
