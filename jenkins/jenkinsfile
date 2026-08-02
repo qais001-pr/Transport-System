@@ -26,42 +26,42 @@ pipeline {
         //         }
         //     }
         // }
-        stage('Build & Push Backend Image') {
-            steps {
-                container('kaniko') {
-                    sh '''
-                    /kaniko/executor \
-                      --context="$WORKSPACE/backend" \
-                      --dockerfile="$WORKSPACE/backend/Dockerfile" \
-                      --destination=${DOCKERHUB_USERNAME}/${BACKEND_IMAGE}:${IMAGE_TAG} \
-                      --destination=${DOCKERHUB_USERNAME}/${BACKEND_IMAGE}:latest
-                    '''
-                }
-            }
-        }
+        // stage('Build & Push Backend Image') {
+        //     steps {
+        //         container('kaniko') {
+        //             sh '''
+        //             /kaniko/executor \
+        //               --context="$WORKSPACE/backend" \
+        //               --dockerfile="$WORKSPACE/backend/Dockerfile" \
+        //               --destination=${DOCKERHUB_USERNAME}/${BACKEND_IMAGE}:${IMAGE_TAG} \
+        //               --destination=${DOCKERHUB_USERNAME}/${BACKEND_IMAGE}:latest
+        //             '''
+        //         }
+        //     }
+        // }
 
-        stage('Build & Push Frontend Image') {
-            steps {
-                container('kaniko') {
-                    withCredentials([
-                        string(credentialsId: 'VITE_API_URL', variable: 'VITE_API_URL'),
-                        string(credentialsId: 'VITE_SOCKET_URL', variable: 'VITE_SOCKET_URL'),
-                        string(credentialsId: 'VITE_VAPID_PUBLIC_KEY', variable: 'VITE_VAPID_PUBLIC_KEY')
-                    ]) {
-                        sh '''
-                        /kaniko/executor \
-                          --context="$WORKSPACE/frontend" \
-                          --dockerfile="$WORKSPACE/frontend/Dockerfile.k8s" \
-                          --build-arg VITE_API_URL=$VITE_API_URL \
-                          --build-arg VITE_SOCKET_URL=$VITE_SOCKET_URL \
-                          --build-arg VITE_VAPID_PUBLIC_KEY=$VITE_VAPID_PUBLIC_KEY \
-                          --destination=${DOCKERHUB_USERNAME}/${FRONTEND_IMAGE}:${IMAGE_TAG} \
-                          --destination=${DOCKERHUB_USERNAME}/${FRONTEND_IMAGE}:latest
-                        '''
-                    }
-                }
-            }
-        }
+        // stage('Build & Push Frontend Image') {
+        //     steps {
+        //         container('kaniko') {
+        //             withCredentials([
+        //                 string(credentialsId: 'VITE_API_URL', variable: 'VITE_API_URL'),
+        //                 string(credentialsId: 'VITE_SOCKET_URL', variable: 'VITE_SOCKET_URL'),
+        //                 string(credentialsId: 'VITE_VAPID_PUBLIC_KEY', variable: 'VITE_VAPID_PUBLIC_KEY')
+        //             ]) {
+        //                 sh '''
+        //                 /kaniko/executor \
+        //                   --context="$WORKSPACE/frontend" \
+        //                   --dockerfile="$WORKSPACE/frontend/Dockerfile.k8s" \
+        //                   --build-arg VITE_API_URL=$VITE_API_URL \
+        //                   --build-arg VITE_SOCKET_URL=$VITE_SOCKET_URL \
+        //                   --build-arg VITE_VAPID_PUBLIC_KEY=$VITE_VAPID_PUBLIC_KEY \
+        //                   --destination=${DOCKERHUB_USERNAME}/${FRONTEND_IMAGE}:${IMAGE_TAG} \
+        //                   --destination=${DOCKERHUB_USERNAME}/${FRONTEND_IMAGE}:latest
+        //                 '''
+        //             }
+        //         }
+        //     }
+        // }
 
         stage('Update Helm Chart') {
             steps {
@@ -82,18 +82,11 @@ pipeline {
                         git clone https://${GITHUB_USER}:${GITHUB_TOKEN}@github.com/qais001-pr/School-Transport-System-Deployment.git deployment
                         cd deployment/helm/
 
-                        ../yq -i '.version = strenv(IMAGE_TAG)' Chart.yaml
-                        ../yq -i '.client.image.tag = strenv(IMAGE_TAG)' values.yaml
-                        ../yq -i '.server.image.tag = strenv(IMAGE_TAG)' values.yaml
-
-                        git config user.name "Muhammad Qais"
-                        git config user.email "qaismuhammad742@gmail.com"
-
-                        git add .
-
-                        git diff --cached --quiet || git commit -m "Release ${IMAGE_TAG}"
-
-                        git push https://${GITHUB_USER}:${GITHUB_TOKEN}@github.com/qais001-pr/School-Transport-System-Deployment.git main
+                        ./yq -i '.version = strenv(IMAGE_TAG)' Chart.yaml
+                        ./yq -i '.client.image.tag = strenv(IMAGE_TAG)' values.yaml
+                        ./yq -i '.server.image.tag = strenv(IMAGE_TAG)' values.yaml
+                        cat Chart.yaml
+                        cat values.yaml
                         '''
                     }
                 }
