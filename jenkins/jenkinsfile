@@ -15,11 +15,6 @@ pipeline {
                         container('helm') {
                             sh 'helm version'
                         }
-
-                        container('argocd') {
-                            sh 'argocd version --client'
-                        }
-
                         container('kaniko') {
                             sh '/kaniko/executor version'
                         }
