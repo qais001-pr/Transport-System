@@ -102,7 +102,7 @@ pipeline {
                           chmod +x yq
                         fi
 
-                        cd deployment
+                        cd deployment/helm/
 
                         ../yq -i '.version = strenv(IMAGE_TAG)' Chart.yaml
                         ../yq -i '.client.image.tag = strenv(IMAGE_TAG)' values.yaml
