@@ -26,29 +26,6 @@ pipeline {
         //         }
         //     }
         // }
-
-        stage('Clone Deployment Repository') {
-            steps {
-                container('git') {
-                    withCredentials([
-                        usernamePassword(
-                            credentialsId: 'github-credentials-token',
-                            usernameVariable: 'GITHUB_USER',
-                            passwordVariable: 'GITHUB_TOKEN'
-                        )
-                    ]) {
-                        sh '''
-                        git --version
-
-                        git clone https://${GITHUB_USER}:${GITHUB_TOKEN}@github.com/qais001-pr/School-Transport-System-Deployment.git deployment
-
-                        ls -la
-                        '''
-                    }
-                }
-            }
-        }
-
         stage('Build & Push Backend Image') {
             steps {
                 container('kaniko') {
@@ -101,7 +78,8 @@ pipeline {
                           wget -q https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O yq
                           chmod +x yq
                         fi
-
+                    
+                        git clone https://${GITHUB_USER}:${GITHUB_TOKEN}@github.com/qais001-pr/School-Transport-System-Deployment.git deployment
                         cd deployment/helm/
 
                         ../yq -i '.version = strenv(IMAGE_TAG)' Chart.yaml
