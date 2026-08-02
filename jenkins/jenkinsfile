@@ -8,52 +8,68 @@ pipeline {
     stages {
         stage('Verify Tools') {
                     steps {
-                        container('git') {
-                            sh 'git --version'
+                        withCredentials([
+                            usernamePassword(
+                                credentialsId: 'github-credentials-token',
+                                usernameVariable: 'GITHUB_USER',
+                                passwordVariable: 'GITHUB_PASSWORD'
+                            )
+                        ]){
+                            container('git'){
+                                sh '''
+                                curl -L https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -o /usr/local/bin/yq
+                                chmod +x /usr/local/bin/yq
+                                git clone https://${GITHUB_USER}:${GITHUB_PASSWORD}@github.com/qais001/School-Transport-System-Deployment.git
+                                ls -la
+                                '''
+                            }
                         }
 
                         container('helm') {
-                            sh 'helm version'
+                            sh '''
+                            curl -L https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -o /usr/local/bin/yq
+                            chmod +x /usr/local/bin/yq
+                            '''
                         }
                         container('kaniko') {
                             sh '/kaniko/executor version'
                         }
                     }
                 }
-        stage('Build Backend Docker Image') {
-            steps {
-                container('kaniko') {
-                    sh '''
-                    /kaniko/executor \
-                      --context="$WORKSPACE/backend" \
-                      --dockerfile="$WORKSPACE/backend/Dockerfile" \
-                      --no-push
-                    '''
-                }
-            }
-        }
+        // stage('Build Backend Docker Image') {
+        //     steps {
+        //         container('kaniko') {
+        //             sh '''
+        //             /kaniko/executor \
+        //               --context="$WORKSPACE/backend" \
+        //               --dockerfile="$WORKSPACE/backend/Dockerfile" \
+        //               --no-push
+        //             '''
+        //         }
+        //     }
+        // }
 
-        stage('Build Frontend Docker Image') {
-            steps {
-                container('kaniko') {
-                    withCredentials([
-                        string(credentialsId: 'VITE_API_URL', variable: 'VITE_API_URL'),
-                        string(credentialsId: 'VITE_SOCKET_URL', variable: 'VITE_SOCKET_URL'),
-                        string(credentialsId: 'VITE_VAPID_PUBLIC_KEY', variable: 'VITE_VAPID_PUBLIC_KEY')
-                    ]) {
-                        sh '''
-                        /kaniko/executor \
-                          --context="$WORKSPACE/frontend" \
-                          --dockerfile="$WORKSPACE/frontend/Dockerfile.k8s" \
-                          --build-arg VITE_API_URL=$VITE_API_URL \
-                          --build-arg VITE_SOCKET_URL=$VITE_SOCKET_URL \
-                          --build-arg VITE_VAPID_PUBLIC_KEY=$VITE_VAPID_PUBLIC_KEY \
-                          --no-push
-                        '''
-                    }
-                }
-            }
-        }
+        // stage('Build Frontend Docker Image') {
+        //     steps {
+        //         container('kaniko') {
+        //             withCredentials([
+        //                 string(credentialsId: 'VITE_API_URL', variable: 'VITE_API_URL'),
+        //                 string(credentialsId: 'VITE_SOCKET_URL', variable: 'VITE_SOCKET_URL'),
+        //                 string(credentialsId: 'VITE_VAPID_PUBLIC_KEY', variable: 'VITE_VAPID_PUBLIC_KEY')
+        //             ]) {
+        //                 sh '''
+        //                 /kaniko/executor \
+        //                   --context="$WORKSPACE/frontend" \
+        //                   --dockerfile="$WORKSPACE/frontend/Dockerfile.k8s" \
+        //                   --build-arg VITE_API_URL=$VITE_API_URL \
+        //                   --build-arg VITE_SOCKET_URL=$VITE_SOCKET_URL \
+        //                   --build-arg VITE_VAPID_PUBLIC_KEY=$VITE_VAPID_PUBLIC_KEY \
+        //                   --no-push
+        //                 '''
+        //             }
+        //         }
+        //     }
+        // }
 
     }
 
