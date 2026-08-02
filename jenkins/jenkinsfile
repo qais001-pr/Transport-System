@@ -22,7 +22,7 @@ pipeline {
                             git --version
 
                             echo "===== Cloning Repository ====="
-                            git clone https://${GITHUB_USER}:${GITHUB_TOKEN}@github.com/qais001/School-Transport-System-Deployment.git deployment
+                            git clone https://${GITHUB_USER}:${GITHUB_TOKEN}@github.com/qais001-pr/School-Transport-System-Deployment.git deployment
 
                             echo "===== Repository Contents ====="
                             ls -lah
