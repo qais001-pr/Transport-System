@@ -27,7 +27,7 @@ pipeline {
 
                         container('helm') {
                             sh '''
-                            curl -L https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -o /usr/local/bin/yq
+                            wget https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -o /usr/local/bin/yq
                             chmod +x /usr/local/bin/yq
                             '''
                         }
