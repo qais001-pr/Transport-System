@@ -31,15 +31,15 @@ pipeline {
                     }
                 }
 
-                container('helm') {
+               container('helm') {
                     sh '''
                         echo "===== Helm Version ====="
                         helm version
 
-                        if ! command -v yq >/dev/null 2>&1; then
+                        if [ ! -f yq ]; then
                             echo "Installing yq..."
-                            wget -q https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
-                            chmod +x ./yq
+                            wget -q https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O yq
+                            chmod +x yq
                         fi
 
                         echo "===== yq Version ====="
