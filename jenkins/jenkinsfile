@@ -6,7 +6,25 @@ pipeline {
     }
 
     stages {
+        stage('Verify Tools') {
+                    steps {
+                        container('git') {
+                            sh 'git --version'
+                        }
 
+                        container('helm') {
+                            sh 'helm version'
+                        }
+
+                        container('argocd') {
+                            sh 'argocd version --client'
+                        }
+
+                        container('kaniko') {
+                            sh '/kaniko/executor version'
+                        }
+                    }
+                }
         stage('Build Backend Docker Image') {
             steps {
                 container('kaniko') {
