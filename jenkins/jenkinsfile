@@ -82,9 +82,9 @@ pipeline {
                         git clone https://${GITHUB_USER}:${GITHUB_TOKEN}@github.com/qais001-pr/School-Transport-System-Deployment.git deployment
                         cd deployment/helm/
 
-                        ./yq -i '.version = strenv(IMAGE_TAG)' Chart.yaml
-                        ./yq -i '.client.image.tag = strenv(IMAGE_TAG)' values.yaml
-                        ./yq -i '.server.image.tag = strenv(IMAGE_TAG)' values.yaml
+                        ../../yq -i '.version = strenv(IMAGE_TAG)' Chart.yaml
+                        ../../yq -i '.client.image.tag = strenv(IMAGE_TAG)' values.yaml
+                        ../../yq -i '.server.image.tag = strenv(IMAGE_TAG)' values.yaml
                         cat Chart.yaml
                         cat values.yaml
                         '''
