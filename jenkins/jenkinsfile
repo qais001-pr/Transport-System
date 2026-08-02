@@ -15,17 +15,17 @@ pipeline {
 
     stages {
 
-        // stage('Verify Tag') {
-        //     steps {
-        //         script {
-        //             if (!env.TAG_NAME?.trim()) {
-        //                 error("This pipeline must be triggered by a Git tag.")
-        //             }
+        stage('Verify Tag') {
+            steps {
+                script {
+                    if (!env.TAG_NAME?.trim()) {
+                        error("This pipeline must be triggered by a Git tag.")
+                    }
 
-        //             echo "Building release: ${env.TAG_NAME}"
-        //         }
-        //     }
-        // }
+                    echo "Building release: ${env.TAG_NAME}"
+                }
+            }
+        }
         stage('Build & Push Backend Image') {
             steps {
                 container('kaniko') {
