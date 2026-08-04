@@ -1,5 +1,5 @@
 const { pool } = require("../../utils/dbConnection");
-
+const logger = require('../../middlewares/loki')
 const getBookings = async (req, res) => {
   try {
     const parentId = req.user.id;
