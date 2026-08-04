@@ -2,7 +2,6 @@ const { pool } = require("../../utils/dbConnection");
 const cron = require("node-cron");
 const logger = require('../../middlewares/loki');
 
-
 addChildren = async (req, res) => {
   try {
     const {
@@ -115,7 +114,6 @@ getChildren = async (req, res) => {
 
   logger.info({
     message: "Fetching children for parent",
-    parent_id,
   });
   try {
     const children = await pool.query(
@@ -140,7 +138,6 @@ getChildren = async (req, res) => {
 
     logger.info({
       message: "Children fetched successfully",
-      parent_id,
       total_children: children.rowCount,
     });
     res.json(children.rows);

@@ -1,5 +1,5 @@
 const { pool } = require("../../utils/dbConnection");
-
+const logger = require('../../middlewares/loki')
 getPaymentHistory = async (req, res) => {
   try {
     const parent_id = req.user.id;
