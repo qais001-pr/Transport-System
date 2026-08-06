@@ -1,7 +1,7 @@
 const { pool } = require("../../utils/dbConnection");
 const cron = require("node-cron");
 const logger = require('../../middlewares/loki');
-
+const { uploadFile } = require('../../middlewares/helper');
 addChildren = async (req, res) => {
   try {
     const {
@@ -64,7 +64,12 @@ addChildren = async (req, res) => {
       school_id,
     });
 
-    let child_pic = req.files?.child_pic?.[0]?.path;
+    let uploadChildPicture = await uploadFile(
+      res.files?.child_pic[0], "users/children"
+    );
+    
+    let child_pic = uploadChildPicture.url;
+    
     const requiresGirlsOnly =
       requires_girls_only === "true" || requires_girls_only === true;
 

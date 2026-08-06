@@ -1,3 +1,4 @@
+const { uploadFile } = require("../../middlewares/helper");
 const { pool } = require("../../utils/dbConnection");
 
 getVans = async (req, res) => {
@@ -206,7 +207,9 @@ addVan = async (req, res) => {
   try {
     const { number_plate, capacity, fare, gender } = req.body;
     await pool.query("BEGIN");
-    const photo_url = req.files?.photo_url ? req.files.photo_url[0].path : null;
+    const van_pic = await uploadFile(req.files?.photo_url[0]);
+
+    const photo_url = van_pic.url;
 
     await pool.query(
       `INSERT INTO vans (number_plate, driver_id, capacity,fare,gender_type,photo_url,is_active) VALUES ($1, $2, $3, $4, $5, $6, $7)`,
@@ -226,7 +229,10 @@ updateVan = async (req, res) => {
   try {
     const vanId = req.params.vanId;
     const { number_plate, capacity, fare, gender } = req.body;
-    const photo_url = req.files?.photo_url?.[0]?.path;
+    
+    const van_pic = await uploadFile(req.files?.photo_url[0]);
+
+    const photo_url = van_pic.url;
 
     console.log("FILES:", req.files);
 

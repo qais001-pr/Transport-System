@@ -1,6 +1,6 @@
 const { pool } = require("../../utils/dbConnection");
 const bcrypt = require("bcryptjs");
-
+const { uploadFile } = require('../../middlewares/helper');
 getUser = async (req, res) => {
   try {
     return res.status(200).json({ user: req.user });
@@ -14,7 +14,8 @@ editUserDetails = async (req, res) => {
     await pool.query("BEGIN");
     const { full_name, phone, email, password } = req.body;
     const user_id = req.user.id;
-    const profile_photo = req?.files?.profile_photo?.[0]?.path;
+    const user_profile_pic = await uploadFile(req?.files?.profile_photo[0], "users/profile");
+    const profile_photo = user_profile_pic.url;
 
     const exists = await pool.query("SELECT id FROM users WHERE id=$1", [
       user_id,

@@ -45,10 +45,12 @@ app.use((req, res, next) => {
   next();
 });
 // Metrics endpoint
-app.get("/api/metrics", async (req, res) => {
-  res.set("Content-Type", register.contentType);
-  res.end(await register.metrics());
-});
+if (process.env.NODE_ENV !== "production") {
+  app.get("/api/metrics", async (req, res) => {
+    res.set("Content-Type", register.contentType);
+    res.end(await register.metrics());
+  });
+}
 // Create a Loki Logger Object 
 const logger = require('./middlewares/loki')
 app.use(express.json());
@@ -106,8 +108,10 @@ app.use("/uploads", express.static(path.resolve("uploads")));
 // app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // routes
-app.get("/swagger.json", (req, res) => res.json(swaggerSpec));
-app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+if (process.env.NODE_ENV !== "production") {
+  app.get("/swagger.json", (req, res) => res.json(swaggerSpec));
+  app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+}
 app.use("/api/auth", require("./routes/auth/authRoute"));
 app.use("/api/users", require("./routes/users/userRoutes"));
 app.use("/api/parents", require("./routes/parents/parentRoute"));
