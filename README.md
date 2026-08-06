@@ -1,242 +1,482 @@
-# School Transport System - Final Year Project
 
-## Project Overview
-A comprehensive school transport management system designed to streamline and automate the daily operations of school transportation. The system provides a robust platform for managing students, vehicles, routes, drivers, and monitoring vehicle locations in real-time.
+# School Transport Management System
 
-## Key Features
+> A cloud-native School Transport Management System built with **React**, **Node.js**, **PostgreSQL**, **Docker**, **Kubernetes**, and **ArgoCD**, featuring real-time vehicle tracking, push notifications, and production-ready deployment.
 
-### Student Management
-- **CRUD Operations**: Complete Create, Read, Update, and Delete functionality for student records.
-- **Data Validation**: Ensures accurate and consistent student information.
-- **Student Details**: Captures essential information including name, contact details, class, section, and guardian information.
+---
 
-### Vehicle Management
-- **Vehicle Tracking**: Real-time monitoring of vehicle locations using GPS.
-- **Vehicle Details**: Manages comprehensive vehicle information including make, model, year, license plate, and capacity.
-- **Status Management**: Tracks vehicle availability and operational status.
+## 📑 Table of Contents
 
-### Route Management
-- **Route Creation**: Definable routes with multiple stops.
-- **Route Optimization**: Efficient path planning for optimal transport operations.
-- **Stop Management**: Customizable stop locations with timing information.
+* Features
+* Architecture
+* Technology Stack
+* Project Structure
+* Prerequisites
+* Installation
+* Environment Variables
+* Docker Deployment
+* Kubernetes Deployment
+* API Documentation
+* Monitoring & Logging
+* Security
+* Scalability
+* Contributing
+* Authors
+* License
 
-### Driver Management
-- **Driver Profiles**: Detailed driver information including contact details and driving license information.
-- **Assignment**: Easy assignment of drivers to specific routes.
-- **Status Tracking**: Monitors driver availability and status.
+---
 
-### Real-Time Monitoring
-- **Live Tracking**: Real-time visualization of all vehicles on a map interface.
-- **Location Updates**: Frequent updates of vehicle positions for accurate monitoring.
-- **Activity Dashboard**: Comprehensive overview of ongoing transport operations.
+# 🚀 Features
 
-### Reporting & Analytics
-- **Attendance Records**: Tracks student and driver attendance.
-- **Route History**: Comprehensive logs of completed routes and stops.
-- **Performance Metrics**: Insights into transport efficiency and vehicle utilization.
+## Student Management
 
-## Technology Stack
+* Student Registration
+* Student CRUD Operations
+* Guardian Management
+* Student Search & Filtering
 
-### Frontend
-- **Framework**: React
-- **Language**: JavaScript
-- **Styling**: Tailwind CSS
-- **Mapping**: Open Street Map
-- **State Management**: Redux Toolkit, Redux Persist
-- **Media Storage**: Cloudinary
+---
 
+## Driver Management
 
+* Driver CRUD
+* License Information
+* Driver Assignment
+* Driver Availability
 
-### Backend
-- **Framework**: NodeJS, Express
-- **Language**: JavaScript
-- **Cloud Storage**: Cloudinary
-- **Database**: PostgreSQL
+---
 
-### Infrastructure
-- **Containerization**: Docker
-- **Orchestration**: Kubernetes (K8s)
-- **Deployment**: ArgoCD
-- **Monitoring**: [Insert Monitoring Tools]
+## Vehicle Management
 
-## Deployment & Setup
+* Vehicle Registration
+* Vehicle Capacity
+* Live Vehicle Tracking
+* Vehicle Status
 
-### Prerequisites
-- Docker installed and running
-- Kubernetes cluster configured (Minikube, Kind, or cloud-based)
-- ArgoCD installed in Kubernetes cluster
-- [Any other prerequisites]
+---
 
-### Installation
-1. **Clone the repository**
-   ```bash
-   git clone [repository-url]
-   cd School-Transport-System
-   ```
+## Route Management
 
-2. **Build and run using Docker**
-   ```bash
-   # Build Docker images (if needed)
-   docker-compose build
-   
-   # Start the application
-   docker-compose up -d
-   ```
+* Route Creation
+* Stop Management
+* Route Assignment
+* Route Optimization
 
-3. **Access the application**
-   - Frontend: [Frontend URL]
-   - Backend: [Backend URL]
-   - Database Admin: [Database Admin URL]
+---
 
-### Kubernetes Deployment
-Define a label on the worker node with the key node-role and the value application:
+## Live Tracking
 
-``` yaml
-   kubectl label node <worker-node-name> node-role=application
-```
-To deploy using Kubernetes:
+* GPS Tracking
+* Real-Time Location Updates
+* OpenStreetMap Integration
+* Driver Live Status
 
-1. **Apply the manifests**
-   ```yaml
-   kubectl apply -f Kubernetes/client/
-   kubectl apply -f Kubernetes/server/
-   kubectl apply -f Kubernetes/postgres/
-   kubectl apply -f Kubernetes/postgres_admin/
-   kubectl apply -f Kubernetes/networkPolicies/
-   kubectl apply -f Kubernetes/horizontalpodscalar/
-   kubectl apply -f Kubernetes/ingress.yaml
-   ```
+---
 
-2. **Using Helm**
-   ```yaml
-   helm install my-transport-app ./Kubernetes/helm
-   ```
+## Notifications
 
-## Project Structure
+* Browser Push Notifications
+* Web Push (VAPID)
+* Email Notifications
+
+---
+
+## Reports
+
+* Attendance Reports
+* Route History
+* Vehicle Reports
+* Driver Reports
+
+---
+
+# 🏗 Architecture
 
 ```
-School-Transport-System/
-├── frondend/              # Frontend application
-│   ├── src/
-│   └── package.json
-├── database/              # Database
-│   ├── fyp_db.sql
-├── backend/              # Backend application
-│   ├── src/
-│   └── package.json
-├── Kubernetes/          # Kubernetes manifests
-│   ├── argocd/
-│   ├── client/
-│   ├── server/
-│   ├── postgres/
-│   ├── postgres_admin/
-│   ├── networkPolicies/
-│   ├── horizontalpodscalar/
-│   ├── ingress.yaml
-│   └── helm/  # Helm chart
-├── .env.example         # Environment variable template
-├── docker-compose.yml   # Docker Compose configuration
-├── Dockerfile           # Dockerfiles for services
-└── README.md            # Project documentation
+                    React Client
+                         │
+                         ▼
+                  NGINX Ingress
+                         │
+         ┌───────────────┴───────────────┐
+         ▼                               ▼
+     Node.js API                   Socket.IO
+         │
+         ▼
+    PostgreSQL Database
+         │
+         ▼
+     Cloudinary Storage
+
+--------------------------------------------
+
+Docker
+Kubernetes
+Helm
+ArgoCD
 ```
 
-## Database
+---
 
-The database is managed using PostgreSQL with the following structure:
+# 🛠 Technology Stack
 
-- **Database Name**: [Database Name]
-- **Tables**: 
-  - students
-  - vehicles
-  - routes
-  - stops
-  - drivers
-  - assignments
-  - attendance
-  - tracking
-  - [other tables]
+| Category         | Technologies                       |
+| ---------------- | ---------------------------------- |
+| Frontend         | React, Redux Toolkit, Tailwind CSS |
+| Backend          | Node.js, Express.js                |
+| Database         | PostgreSQL                         |
+| Maps             | OpenStreetMap                      |
+| Storage          | Cloudinary                         |
+| Authentication   | JWT                                |
+| Notifications    | Web Push                           |
+| Containerization | Docker                             |
+| Orchestration    | Kubernetes                         |
+| Package Manager  | Helm                               |
+| GitOps           | ArgoCD                             |
+| Monitoring       | Prometheus                         |
+| Logging          | Loki + Fluent Bit                  |
+| Visualization    | Grafana                            |
 
-See `Kubernetes/van_system_chart/sql/fyp_db.sql` for the complete database schema.
+---
 
-## API Endpoints
+# 📂 Project Structure
 
-### Student Endpoints
-- `GET /students`: Get all students
-- `POST /students`: Create a new student
-- `GET /students/:id`: Get student by ID
-- `PUT /students/:id`: Update student
-- `DELETE /students/:id`: Delete student
+```
+School-Transport-System
+│
+├── backend
+├── frontend
+├── database
+├── kubernetes
+│   ├── helm
+│   ├── argocd
+│   ├── ingress
+│   ├── postgres
+│   ├── network-policies
+│   └── hpa
+│
+├── docker-compose.yml
+├── README.md
+└── LICENSE
+```
 
-### Vehicle Endpoints
-- `GET /vehicles`: Get all vehicles
-- `POST /vehicles`: Create a new vehicle
-- `GET /vehicles/:id`: Get vehicle by ID
-- `PUT /vehicles/:id`: Update vehicle
-- `DELETE /vehicles/:id`: Delete vehicle
+---
 
-### Route Endpoints
-- `GET /routes`: Get all routes
-- `POST /routes`: Create a new route
-- `GET /routes/:id`: Get route by ID
-- `PUT /routes/:id`: Update route
-- `DELETE /routes/:id`: Delete route
+# ⚙ Prerequisites
 
-### Driver Endpoints
-- `GET /drivers`: Get all drivers
-- `POST /drivers`: Create a new driver
-- `GET /drivers/:id`: Get driver by ID
-- `PUT /drivers/:id`: Update driver
-- `DELETE /drivers/:id`: Delete driver
+* Node.js 22+
+* Docker
+* Docker Compose
+* PostgreSQL
+* Git
 
-### Tracking Endpoints
-- `GET /tracking/live`: Get real-time vehicle locations
-- `GET /tracking/:vehicleId/history`: Get vehicle location history
-- `POST /tracking/update`: Update vehicle location
+Optional
 
-## Security
+* Kubernetes
+* Helm
+* ArgoCD
 
-### Security Features
-- **Network Policies**: Configured to restrict traffic between services
-- **Authentication**: [Describe authentication method, e.g., JWT]
-- **Authorization**: [Describe authorization method]
-- **Encryption**: [Describe encryption methods]
+---
 
-### Security Best Practices
-- Keep database credentials secure
-- Regularly update container images
-- Implement proper access control
-- Monitor application logs for suspicious activity
+# 🚀 Installation
 
-## Scalability
+## 🚀 Installation Guide
 
-The system is designed for scalability with:
-- Horizontal Pod Autoscaling (HPA) for frontend, backend, and database
-- Stateless frontend architecture
-- Containerized services for easy scaling
+### 1. Clone the Repository
 
-### Performance Features
-- Real-time location updates
-- Efficient database queries
-- Optimized routing algorithms
-- Caching for frequently accessed data
+Clone the project and navigate to the project directory.
 
-## Contributing
+```bash
+git clone https://github.com/qais001-pr/Transport-System.git
+cd School-Transport-System
+```
 
-Contributions are welcome! Please follow these steps:
+---
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
+## 2. Configure Environment Variables
 
-## Authors
+Before running the application, create the required `.env` files for both the **Backend** and **Frontend**.
 
-- **Zaman Ali**
-- **Qais**
+### Backend (`backend/.env`)
 
-## Contact
+```env
+# Application Configuration
+PORT=7860
+NODE_ENV=production
 
-For any questions or support, please contact:
-- Email: qaismuhammad742@gmail.com
-- GitHub: github.com/qais001-pr
+# Cloudinary Configuration
+CLOUDINARY_CLOUD_NAME=YOUR_CLOUD_NAME
+CLOUDINARY_API_KEY=YOUR_API_KEY
+CLOUDINARY_API_SECRET=YOUR_API_SECRET
+
+# JWT Configuration
+JWT_SECRET=YOUR_JWT_SECRET
+JWT_EXPIRES_IN=1d
+
+# PostgreSQL Database
+DB_HOST=YOUR_DATABASE_HOST
+DB_PORT=5432
+DB_NAME=YOUR_DATABASE_NAME
+DB_USER=YOUR_DATABASE_USER
+DB_PASSWORD=YOUR_DATABASE_PASSWORD
+DB_SSL=true
+
+# Email Configuration
+EMAIL_SERVICES=gmail
+EMAIL_USER=YOUR_EMAIL
+EMAIL_PASSWORD=YOUR_EMAIL_PASSWORD
+EMAIL_FROM_NAME=YOUR_APP_NAME
+
+# Web Push Notifications
+VAPID_PUBLIC_KEY=YOUR_PUBLIC_KEY
+VAPID_PRIVATE_KEY=YOUR_PRIVATE_KEY
+VAPID_EMAIL=YOUR_EMAIL@gmail.com
+
+# Logging (Optional)
+LOKI_URL=http://localhost:3100
+```
+
+### Frontend (`frontend/.env`)
+
+```env
+VITE_SOCKET_URL=http://localhost:7860/api
+VITE_API_URL=http://localhost:7860/api
+VITE_VAPID_PUBLIC_KEY=YOUR_VAPID_PUBLIC_KEY
+```
+
+---
+
+## 3. Create Required Services
+
+Before running the application, you'll need to create the following services and obtain their credentials.
+
+| Service | Purpose | Setup Guide |
+|---------|---------|-------------|
+| ☁️ Cloudinary | Store images and media files | https://cloudinary.com/documentation |
+| 🐘 PostgreSQL (Neon) | Managed PostgreSQL Database | https://neon.tech/docs/get-started-with-neon |
+| 🔔 Web Push (VAPID Keys) | Browser Push Notifications | https://github.com/web-push-libs/web-push#generate-vapid-keys |
+
+### Generate VAPID Keys
+
+Install the Web Push package globally:
+
+```bash
+npm install -g web-push
+```
+
+Generate a new VAPID key pair:
+
+```bash
+web-push generate-vapid-keys
+```
+
+Example Output:
+
+```text
+=======================================
+
+Public Key:
+YOUR_PUBLIC_KEY
+
+Private Key:
+YOUR_PRIVATE_KEY
+
+=======================================
+```
+
+Copy these values into:
+
+```env
+VAPID_PUBLIC_KEY=YOUR_PUBLIC_KEY
+VAPID_PRIVATE_KEY=YOUR_PRIVATE_KEY
+```
+
+and use the **Public Key** in the frontend:
+
+```env
+VITE_VAPID_PUBLIC_KEY=YOUR_PUBLIC_KEY
+```
+
+---
+
+## 4. Build and Run with Docker
+
+Build the Docker images and start all containers.
+
+```bash
+# Build Docker images
+docker compose build
+
+# Start all services
+docker compose up -d
+```
+
+To stop the application:
+
+```bash
+docker compose down
+```
+
+---
+
+## 5. Verify Running Containers
+
+```bash
+docker compose ps
+```
+
+You should see all containers in the **Up** state.
+
+---
+
+## 6. Access the Application
+
+After the application starts successfully, access it using the following URLs.
+
+| Service | URL |
+|---------|-----|
+| 🌐 Frontend | http://localhost:3000 |
+| 🚀 Backend API | http://localhost:7860 |
+| 📖 Swagger API Documentation | http://localhost:7860/api/docs *(Available only when `NODE_ENV` is not `production`)* |
+
+---
+
+## 7. View Logs
+
+View logs for all services:
+
+```bash
+docker compose logs -f
+```
+
+View logs for a specific service:
+
+```bash
+docker compose logs -f backend
+```
+
+```bash
+docker compose logs -f frontend
+```
+
+---
+
+# 🐳 Docker Deployment
+
+```bash
+docker compose build
+
+docker compose up -d
+```
+
+---
+
+# 🌐 Application URLs
+
+| Service          | URL                                                              |
+| ---------------- | ---------------------------------------------------------------- |
+| Frontend         | [http://localhost:3000](http://localhost:3000)                   |
+| Backend          | [http://localhost:7860](http://localhost:7860)                   |
+| Swagger          | [http://localhost:7860/api/docs](http://localhost:7860/api/docs) |
+| PostgreSQL Admin | [http://localhost:5050](http://localhost:5050)                   |
+
+---
+
+# 📊 Monitoring & Logging
+
+The project supports production-grade observability.
+
+### Monitoring
+
+* Prometheus
+* Grafana
+
+### Logging
+
+* Loki
+* Fluent Bit
+
+---
+
+# 🔒 Security
+
+* JWT Authentication
+* Kubernetes Network Policies
+* HTTPS Ready
+* Secrets Management
+* Environment Variables
+* Secure Password Hashing
+
+---
+
+# 📈 Scalability
+
+The application is designed for Kubernetes environments.
+
+Features include
+
+* Horizontal Pod Autoscaler
+* Rolling Updates
+* Self Healing Pods
+* Stateless Backend
+* Persistent PostgreSQL Storage
+
+---
+
+# 📖 API Documentation
+
+Swagger UI
+
+```
+/api/docs
+```
+
+> Swagger is automatically disabled in the Production environment.
+
+---
+
+# 🤝 Contributing
+
+1. Fork Repository
+
+2. Create Feature Branch
+
+```
+git checkout -b feature/new-feature
+```
+
+3. Commit
+
+```
+git commit -m "Added new feature"
+```
+
+4. Push
+
+```
+git push origin feature/new-feature
+```
+
+5. Create Pull Request
+
+---
+
+# 👨‍💻 Authors
+
+### Qais Muhammad
+
+GitHub
+
+```
+https://github.com/qais001-pr
+```
+
+Email
+
+```
+qaismuhammad742@gmail.com
+```
+
+---
+
+### Zaman Ali
