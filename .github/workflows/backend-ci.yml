@@ -23,6 +23,8 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -32,14 +34,13 @@ jobs:
         working-directory: ./backend
 
       - name: Secret Scan
-        uses: gitleaks/gitleaks-action@v4
+        uses: gitleaks/gitleaks-action@v2
         with:
           path: ./backend
           report-format: sarif
           report-path: gitleaks-report.sarif
           verbose: true
           hard-fail: true
-          fetch-depth: 0
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
