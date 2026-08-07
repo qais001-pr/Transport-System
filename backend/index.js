@@ -51,6 +51,8 @@ if (process.env.NODE_ENV !== "production") {
     res.end(await register.metrics());
   });
 }
+
+// add a dummy commit to check pipeline
 // Create a Loki Logger Object 
 const logger = require('./middlewares/loki')
 app.use(express.json());
