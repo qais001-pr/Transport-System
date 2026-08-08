@@ -10,13 +10,12 @@ ENV VITE_SOCKET_URL=${VITE_SOCKET_URL}
 ENV VITE_API_URL=${VITE_API_URL}
 ENV VITE_VAPID_PUBLIC_KEY=${VITE_VAPID_PUBLIC_KEY}
 
-COPY package*.json ./
+COPY package.json package-lock.json ./
 
-RUN npm install
-
+RUN npm ci
 
 COPY . .
 
 EXPOSE 3000
 
-CMD ["npm", "run", "dev"]
+CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"]
